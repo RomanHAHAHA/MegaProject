@@ -1,0 +1,28 @@
+﻿using MediatR;
+using ReviewsService.Domain.Entities;
+using ReviewsService.Domain.Interfaces;
+
+namespace ReviewsService.Application.Features.Users.Create;
+
+public class CreateUserCommandHandler(
+    IUsersRepository usersRepository,
+    ILogger<CreateUserCommandHandler> logger) : IRequestHandler<CreateUserCommand>
+{
+    public async Task Handle(
+        CreateUserCommand request,
+        CancellationToken cancellationToken)
+    {
+        var user = new UserSnapshot
+        {
+            Id = request.UserId,
+            NickName = request.NickName,
+        };
+        
+        var created = await usersRepository.CreateAsync(user, cancellationToken);
+        var message = created ? 
+            "User created successfully." :
+            "Failed to create user.";
+        
+        logger.LogInformation(message);
+    }
+}

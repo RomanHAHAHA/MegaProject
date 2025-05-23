@@ -1,0 +1,68 @@
+﻿using Common.API.Authentication;
+using Common.API.Extensions;
+using Common.Domain.Dtos;
+using Common.Domain.Enums;
+using Common.Domain.Models.Results;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using UsersService.Application.Features.Users.GetById;
+using UsersService.Application.Features.Users.GetPagedList;
+using UsersService.Application.Features.Users.SetAvatarImage;
+using UsersService.Application.Features.Users.UpdatePassword;
+using UsersService.Domain.Entities;
+
+namespace UsersService.API.Controllers;
+
+[Route("/api/users")]
+[ApiController]
+public class UsersController(IMediator mediator) : ControllerBase
+{ 
+    [HttpGet]
+    [HasPermission(PermissionEnum.ViewUsers)]
+    public async Task<PagedList<User>> GetPagedUsersListAsync(
+        [FromQuery] UsersFilter usersFilter,
+        [FromQuery] SortParams sortParams,
+        [FromQuery] PageParams pageParams,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetPagedUsersListQuery(
+            usersFilter,
+            sortParams,
+            pageParams);
+        
+        return await mediator.Send(query, cancellationToken);
+    }
+
+    [HttpGet("{userId:guid}")]
+    [HasPermission(PermissionEnum.ViewUsers)]
+    public async Task<IActionResult> GetUserByIdAsync(
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var response = await mediator.Send(new GetUserByIdQuery(userId), cancellationToken);
+        return this.HandleResponse(response);
+    }
+
+    [Authorize]
+    [HttpPatch("me/avatar")]
+    public async Task<IActionResult> SetAvatarImageAsync(
+        [FromForm] SetAvatarImageDto imageDto,
+        CancellationToken cancellationToken)
+    {
+        var command = new SetAvatarImageCommand(User.GetId(), imageDto);
+        var response = await mediator.Send(command, cancellationToken);
+        return this.HandleResponse(response);
+    }
+
+    [Authorize]
+    [HttpPatch("me/password")]
+    public async Task<IActionResult> SetNewPasswordAsync( 
+        [FromBody] UpdatePasswordDto updatePasswordDto,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdatePasswordCommand(User.GetId(), updatePasswordDto);
+        var response = await mediator.Send(command, cancellationToken);
+        return this.HandleResponse(response);
+    }
+}

@@ -6,11 +6,11 @@ namespace ReviewsService.Application.Features.Reviews.Create;
 
 public class ReviewsFactory
 {
-    public Review CreateFromDto(ReviewCreateDto reviewCreateDto)
+    public Review CreateFromDto(ReviewCreateDto reviewCreateDto, Guid userId)
     {
         return new Review
         {
-            UserId = reviewCreateDto.UserId,
+            UserId = userId,
             ProductId = reviewCreateDto.ProductId,
             Text = reviewCreateDto.Text,
             Rate = reviewCreateDto.Rate,

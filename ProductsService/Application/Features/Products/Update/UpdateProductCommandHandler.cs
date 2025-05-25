@@ -1,4 +1,6 @@
-﻿using Common.Domain.Models.Results;
+﻿using Common.Domain.Enums;
+using Common.Domain.Interfaces;
+using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
 using FluentValidation;
 using MassTransit;
@@ -12,11 +14,10 @@ namespace ProductsService.Application.Features.Products.Update;
 public class UpdateProductCommandHandler(
     IProductsRepository productsRepository,
     IValidator<ProductCreateDto> validator,
-    IPublishEndpoint publishEndpoint) : IRequestHandler<UpdateProductCommand, BaseResponse<Guid>>
+    IPublishEndpoint publishEndpoint,
+    IHttpUserContext httpContext) : IRequestHandler<UpdateProductCommand, BaseResponse<Guid>>
 {
-    public async Task<BaseResponse<Guid>> Handle(
-        UpdateProductCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse<Guid>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         var validationResult = validator.Validate(request.ProductCreateDto);
 
@@ -33,27 +34,28 @@ public class UpdateProductCommandHandler(
         }
         
         UpdateProduct(product, request.ProductCreateDto);
-        var updated = await productsRepository.UpdateAsync(product, cancellationToken);
-
-        if (!updated)
-        {
-            return BaseResponse<Guid>.InternalServerError("Failed to update product");
-        }
-
+        
         await OnProductUpdated(product, cancellationToken);
-        return BaseResponse<Guid>.Ok(product.Id);
+        
+        var updated = await productsRepository.SaveChangesAsync(cancellationToken);
+
+        return updated ? 
+            BaseResponse<Guid>.Ok(product.Id) : 
+            BaseResponse<Guid>.InternalServerError("Failed to update product");
     }
 
-    private async Task OnProductUpdated(
-        Product product,
-        CancellationToken cancellationToken)
+    private async Task OnProductUpdated(Product product, CancellationToken cancellationToken)
     {
-        var productUpdatedEvent = new ProductUpdatedEvent(
-            product.Id,
-            product.Name,
-            product.Price);
-
-        await publishEndpoint.Publish(productUpdatedEvent, cancellationToken);
+        await publishEndpoint.Publish(new SystemActionEvent
+        {
+            UserId = httpContext.UserId,
+            ActionType = ActionType.Update,
+            Message = $"Product {product.Id} updated"
+        }, cancellationToken);
+        
+        await publishEndpoint.Publish(
+            new ProductUpdatedEvent(product.Id, product.Name, product.Price), 
+            cancellationToken);
     }
     
     private void UpdateProduct(Product product, ProductCreateDto productCreateDto)

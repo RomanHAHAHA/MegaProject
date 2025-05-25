@@ -1,5 +1,5 @@
 ﻿using Common.Infrastructure.Messaging.Events;
-using EmailService.Application.Commands;
+using EmailService.Application.Features.EmailConfirmations.SendCode;
 using MassTransit;
 using MediatR;
 

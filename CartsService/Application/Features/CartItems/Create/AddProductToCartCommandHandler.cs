@@ -10,9 +10,7 @@ public class AddProductToCartCommandHandler(
     ICartsRepository cartsRepository,
     IProductRepository productRepository) : IRequestHandler<AddProductToCartCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        AddProductToCartCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(AddProductToCartCommand request, CancellationToken cancellationToken)
     {
         var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
 
@@ -37,8 +35,9 @@ public class AddProductToCartCommandHandler(
             ProductId = request.ProductId,
             Quantity = 1,
         };
-            
-        var created = await cartsRepository.CreateAsync(cartItem, cancellationToken);
+
+        await cartsRepository.CreateAsync(cartItem, cancellationToken);
+        var created = await cartsRepository.SaveChangesAsync(cancellationToken);
 
         return created ? 
             BaseResponse.Ok() :

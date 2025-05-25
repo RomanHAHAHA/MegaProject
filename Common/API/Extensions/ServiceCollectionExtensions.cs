@@ -15,21 +15,16 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, 
         IConfiguration configuration) where T : class
     {
-        var section = configuration.GetSection(typeof(T).Name);
-
-        if (!section.Exists())
-        {
-            throw new ArgumentException($"Section {typeof(T).Name} not found in configuration.");
-        }
-
-        services.Configure<T>(section);
+        services.Configure<T>(configuration.GetSection(typeof(T).Name));
     }
     
     public static void AddApiAuthorization(
         this IServiceCollection services,
-        JwtOptions jwtOptions,
-        CustomCookieOptions customCookieOptions)
-    {
+        IConfiguration configuration)
+    {   
+        var jwtOptions = configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>()!;
+        var cookieOptions = configuration.GetSection(nameof(CustomCookieOptions)).Get<CustomCookieOptions>()!;
+        
         services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -56,8 +51,7 @@ public static class ServiceCollectionExtensions
                 {
                     OnMessageReceived = context =>
                     {
-                        context.Token = context.Request.Cookies[customCookieOptions.Name];
-
+                        context.Token = context.Request.Cookies[cookieOptions.Name];
                         return Task.CompletedTask;
                     }
                 };

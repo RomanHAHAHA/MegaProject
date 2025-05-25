@@ -9,7 +9,7 @@ using ReviewsService.Application.Services;
 using ReviewsService.Domain.Interfaces;
 using ReviewsService.Infrastructure.Events.Consumers;
 using ReviewsService.Infrastructure.Persistence;
-using ReviewsService.Infrastructure.Persistence.Repositories.Base;
+using ReviewsService.Infrastructure.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,25 +34,20 @@ builder.Services.AddDbContext<ReviewsDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL"));
 });
 
-var jwtOptions = builder.Configuration
-    .GetSection(nameof(JwtOptions))
-    .Get<JwtOptions>() ?? throw new NullReferenceException(nameof(JwtOptions));
-
-var customCookieOptions = builder.Configuration
-    .GetSection(nameof(CustomCookieOptions))
-    .Get<CustomCookieOptions>() ?? throw new NullReferenceException(nameof(CustomCookieOptions));
-
-builder.Services.AddApiAuthorization(jwtOptions, customCookieOptions);
+builder.Services.AddApiAuthorization(builder.Configuration);
 
 builder.Services.AddMassTransit(bugConfigurator =>
 {
-    bugConfigurator.AddConsumer<ProductCreatedConsumer>();
-    bugConfigurator.AddConsumer<ProductUpdatedConsumer>();
-    bugConfigurator.AddConsumer<ProductMainImageSetConsumer>();
-    bugConfigurator.AddConsumer<UserAvatarUpdatedConsumer>();
-    bugConfigurator.AddConsumer<UserRegisteredConsumer>();
-    
+    bugConfigurator.AddConsumers(typeof(Program).Assembly);
     bugConfigurator.SetKebabCaseEndpointNameFormatter();
+    
+    bugConfigurator.AddEntityFrameworkOutbox<ReviewsDbContext>(options =>
+    {
+        options.DuplicateDetectionWindow = TimeSpan.FromSeconds(30);
+        options.QueryDelay = TimeSpan.FromSeconds(1);
+        options.UseSqlServer().UseBusOutbox();
+    });
+    
     bugConfigurator.UsingRabbitMq((context, configurator) =>
     {
         configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
@@ -81,6 +76,10 @@ builder.Services.AddMassTransit(bugConfigurator =>
         configurator.ReceiveEndpoint("reviews-user-registered", e =>
         {
             e.ConfigureConsumer<UserRegisteredConsumer>(context);
+        });
+        configurator.ReceiveEndpoint("reviews-product-deleted", e =>
+        {
+            e.ConfigureConsumer<ProductDeletedConsumer>(context);
         });
     });
 });

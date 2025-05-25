@@ -124,6 +124,24 @@
           }
         }
       },
+      "MassTransit.EntityFrameworkCore/8.4.1": {
+        "type": "package",
+        "dependencies": {
+          "MassTransit": "8.4.1",
+          "Microsoft.EntityFrameworkCore.Relational": "9.0.0",
+          "Microsoft.Extensions.Caching.Memory": "9.0.0"
+        },
+        "compile": {
+          "lib/net9.0/MassTransit.EntityFrameworkCoreIntegration.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/MassTransit.EntityFrameworkCoreIntegration.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "MassTransit.RabbitMQ/8.4.1": {
         "type": "package",
         "dependencies": {
@@ -2405,6 +2423,23 @@
         "lib/netstandard2.0/MassTransit.Abstractions.xml",
         "masstransit.abstractions.8.4.1.nupkg.sha512",
         "masstransit.abstractions.nuspec",
+        "mt-logo-small.png"
+      ]
+    },
+    "MassTransit.EntityFrameworkCore/8.4.1": {
+      "sha512": "RthOj/c0Dj6yvEcy4aKUm8PuqUQZMgV2fopdjHK/FA2BcHWiH3pLTgbFm9ss+9+9XmywV0ooPvNShNsORdXzRQ==",
+      "type": "package",
+      "path": "masstransit.entityframeworkcore/8.4.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "NuGet.README.md",
+        "lib/net8.0/MassTransit.EntityFrameworkCoreIntegration.dll",
+        "lib/net8.0/MassTransit.EntityFrameworkCoreIntegration.xml",
+        "lib/net9.0/MassTransit.EntityFrameworkCoreIntegration.dll",
+        "lib/net9.0/MassTransit.EntityFrameworkCoreIntegration.xml",
+        "masstransit.entityframeworkcore.8.4.1.nupkg.sha512",
+        "masstransit.entityframeworkcore.nuspec",
         "mt-logo-small.png"
       ]
     },
@@ -6122,6 +6157,7 @@
   "projectFileDependencyGroups": {
     "net9.0": [
       "Common >= 1.0.0",
+      "MassTransit.EntityFrameworkCore >= 8.4.1",
       "MassTransit.RabbitMQ >= 8.4.1",
       "Microsoft.EntityFrameworkCore >= 9.0.5",
       "Microsoft.EntityFrameworkCore.SqlServer >= 9.0.5",
@@ -6176,6 +6212,10 @@
       "net9.0": {
         "targetAlias": "net9.0",
         "dependencies": {
+          "MassTransit.EntityFrameworkCore": {
+            "target": "Package",
+            "version": "[8.4.1, )"
+          },
           "MassTransit.RabbitMQ": {
             "target": "Package",
             "version": "[8.4.1, )"

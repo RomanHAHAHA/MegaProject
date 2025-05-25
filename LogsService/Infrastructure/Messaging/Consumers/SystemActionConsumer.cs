@@ -1,0 +1,20 @@
+﻿using Common.Infrastructure.Messaging.Events;
+using LogsService.Application.Features.ActionLogs.LogSystemAction;
+using MassTransit;
+using MediatR;
+
+namespace LogsService.Infrastructure.Messaging.Consumers;
+
+public class SystemActionConsumer(IMediator mediator) : IConsumer<SystemActionEvent>
+{
+    public async Task Consume(ConsumeContext<SystemActionEvent> context)
+    {
+        var @event = context.Message;
+        var command = new CreateLogActionCommand(
+            @event.UserId,
+            @event.ActionType,
+            @event.Message);
+        
+        await mediator.Send(command, context.CancellationToken);
+    }
+}

@@ -1,5 +1,6 @@
 ﻿using Common.API.Extensions;
-using EmailService.Application.Commands;
+using EmailService.Application.Features.EmailConfirmations.ConfirmEmail;
+using EmailService.Application.Features.EmailConfirmations.SendCode;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

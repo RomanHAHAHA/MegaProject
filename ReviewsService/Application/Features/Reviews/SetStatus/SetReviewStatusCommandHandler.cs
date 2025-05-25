@@ -1,4 +1,8 @@
-﻿using Common.Domain.Models.Results;
+﻿using Common.Domain.Enums;
+using Common.Domain.Interfaces;
+using Common.Domain.Models.Results;
+using Common.Infrastructure.Messaging.Events;
+using MassTransit;
 using MediatR;
 using ReviewsService.Domain.Entities;
 using ReviewsService.Domain.Interfaces;
@@ -6,11 +10,11 @@ using ReviewsService.Domain.Interfaces;
 namespace ReviewsService.Application.Features.Reviews.SetStatus;
 
 public class SetReviewStatusCommandHandler(
-    IReviewsRepository reviewsRepository) : IRequestHandler<SetReviewStatusCommand, BaseResponse>
+    IReviewsRepository reviewsRepository,
+    IPublishEndpoint publisher,
+    IHttpUserContext httpContext) : IRequestHandler<SetReviewStatusCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        SetReviewStatusCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(SetReviewStatusCommand request, CancellationToken cancellationToken)
     {
         var review = await reviewsRepository.GetByIdAsync(
             request.UserId,
@@ -23,9 +27,23 @@ public class SetReviewStatusCommandHandler(
         }
         
         review.Status = request.Status;
+        await OnReviewStatusSet(request, cancellationToken);
         
-        await reviewsRepository.UpdateAsync(review, cancellationToken);
+        var updated = await reviewsRepository.SaveChangesAsync(cancellationToken);
         
-        return BaseResponse.Ok();
+        return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+    }
+
+    private async Task OnReviewStatusSet(SetReviewStatusCommand request, CancellationToken cancellationToken)
+    {
+        var reviewUserId = request.UserId;
+        var reviewProductId = request.ProductId;
+        
+        await publisher.Publish(new SystemActionEvent
+        {
+            UserId = httpContext.UserId,
+            ActionType = ActionType.Update,
+            Message = $"Review of user {reviewUserId} on product {reviewProductId} status set: {request.Status}",
+        }, cancellationToken);
     }
 }

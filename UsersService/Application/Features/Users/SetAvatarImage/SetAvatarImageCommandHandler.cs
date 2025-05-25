@@ -37,15 +37,14 @@ public class SetAvatarImageCommandHandler(
         }
         
         user.AvatarPath = result.Value;
-        var updated = await usersRepository.UpdateAsync(user, cancellationToken);
-
-        if (!updated)
-        {
-            return BaseResponse.InternalServerError("Failed to set avatar image.");
-        }
 
         await OnAvatarSet(user, cancellationToken);
-        return BaseResponse.Ok();
+
+        var updated = await usersRepository.SaveChangesAsync(cancellationToken);
+
+        return updated ? 
+            BaseResponse.Ok() : 
+            BaseResponse.InternalServerError("Failed to set avatar image.");
     }
     
     private async Task OnAvatarSet(

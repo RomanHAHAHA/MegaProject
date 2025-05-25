@@ -1,6 +1,5 @@
 ﻿using CartsService.Domain.Entities;
 using CartsService.Domain.Interfaces;
-using Common.Domain.Entities;
 using Common.Domain.Models.Results;
 using MediatR;
 
@@ -24,7 +23,7 @@ public class DecrementItemQuantityCommandHandler(
         }
         
         cartItem.Quantity--;
-        var updated = await cartsRepository.UpdateAsync(cartItem, cancellationToken);
+        var updated = await cartsRepository.SaveChangesAsync(cancellationToken);
         
         return updated ? 
             BaseResponse.Ok() :

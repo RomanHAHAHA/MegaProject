@@ -15,9 +15,7 @@ public class CreateImageCommandHandler(
     IOptions<ProductImagesOptions> options,
     IPublishEndpoint publishEndpoint) : IRequestHandler<AddImagesCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        AddImagesCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(AddImagesCommand request, CancellationToken cancellationToken)
     {
         var product = await productsRepository.GetByIdWithImagesAsync(
             request.ProductId, 
@@ -50,16 +48,16 @@ public class CreateImageCommandHandler(
                 IsMain = isMain
             };
 
+            images.Add(image);
+            
             if (isMain)
             {
                 await OnMainImageSet(image, cancellationToken);
             }
-
-            images.Add(image);
         }
         
         product.Images.AddRange(images);
-        var created = await productsRepository.UpdateAsync(product, cancellationToken);
+        var created = await productsRepository.SaveChangesAsync(cancellationToken);
         
         return created ? 
             BaseResponse.Ok() : 

@@ -2,7 +2,6 @@ using Common.API.Extensions;
 using Common.Application.Options;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
-using Common.Infrastructure.Persistence.Repositories;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -13,8 +12,7 @@ using OrdersService.Domain.Dtos;
 using OrdersService.Domain.Interfaces;
 using OrdersService.Infrastructure.Messaging.Consumers;
 using OrdersService.Infrastructure.Persistence;
-using OrdersService.Infrastructure.Persistence.Repositories.Base;
-using OrdersService.Infrastructure.Persistence.Repositories.Logging;
+using OrdersService.Infrastructure.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,11 +29,9 @@ builder.Services.AddConfiguredOptions<CustomCookieOptions>(builder.Configuration
 builder.Services.AddConfiguredOptions<NovaPoshtaOptions>(builder.Configuration);
 
 builder.Services.AddScoped<IOrdersRepository, OrdersRepository>();
-builder.Services.Decorate<IOrdersRepository, LoggingOrdersRepository>();
 
 builder.Services.AddScoped<IProductRepository, ProductsRepository>();
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
-builder.Services.AddScoped<IOutboxMessagesRepository, OutboxMessagesRepository<OrdersDbContext>>();
 
 builder.Services.AddHttpClient<ICartServiceClient, CartServiceClient>();
 builder.Services.AddHttpClient<INovaPoshtaClient, NovaPoshtaClient>();
@@ -45,22 +41,22 @@ builder.Services.AddDbContext<OrdersDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL"));
 });
 
-var jwtOptions = builder.Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>()!;
-var customCookieOptions = builder.Configuration.GetSection(nameof(CustomCookieOptions)).Get<CustomCookieOptions>()!;
-
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IHttpUserContext, HttpUserContext>();
-builder.Services.AddApiAuthorization(jwtOptions, customCookieOptions);
+builder.Services.AddApiAuthorization(builder.Configuration);
 
 builder.Services.AddMassTransit(bugConfigurator =>
 {
-    bugConfigurator.AddConsumer<ProductCreatedConsumer>();
-    bugConfigurator.AddConsumer<ProductUpdatedConsumer>();
-    bugConfigurator.AddConsumer<ProductMainImageSetConsumer>();
-    bugConfigurator.AddConsumer<UserAvatarUpdatedConsumer>();
-    bugConfigurator.AddConsumer<UserRegisteredConsumer>();
-    
+    bugConfigurator.AddConsumers(typeof(Program).Assembly);
     bugConfigurator.SetKebabCaseEndpointNameFormatter();
+    
+    bugConfigurator.AddEntityFrameworkOutbox<OrdersDbContext>(options =>
+    {
+        options.DuplicateDetectionWindow = TimeSpan.FromSeconds(30);
+        options.QueryDelay = TimeSpan.FromSeconds(1);
+        options.UseSqlServer().UseBusOutbox();
+    });
+    
     bugConfigurator.UsingRabbitMq((context, configurator) =>
     {
         configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
@@ -89,6 +85,10 @@ builder.Services.AddMassTransit(bugConfigurator =>
         configurator.ReceiveEndpoint("orders-user-registered", e =>
         {
             e.ConfigureConsumer<UserRegisteredConsumer>(context);
+        });
+        configurator.ReceiveEndpoint("orders-product-deleted", e =>
+        {
+            e.ConfigureConsumer<ProductDeletedConsumer>(context);
         });
     });
 });

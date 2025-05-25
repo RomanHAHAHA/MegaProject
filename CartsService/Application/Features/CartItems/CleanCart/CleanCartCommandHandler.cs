@@ -1,17 +1,18 @@
-﻿using CartsService.Domain.Interfaces;
+﻿using CartsService.Infrastructure.Persistence;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace CartsService.Application.Features.CartItems.CleanCart;
 
-public class CleanCartCommandHandler(
-    ICartsRepository cartsRepository) : IRequestHandler<CleanCartCommand>
+public class CleanCartCommandHandler(CartsDbContext dbContext) : IRequestHandler<CleanCartCommand>
 {
-    public async Task Handle(
-        CleanCartCommand request, 
-        CancellationToken cancellationToken)
+    public async Task Handle(CleanCartCommand request, CancellationToken cancellationToken)
     {
-        await cartsRepository.DeleteItemsFromUserCartAsync(
-            request.UserId,
-            cancellationToken);
+        var cartItems = await dbContext.CartItems
+            .Where(ci => ci.UserId == request.UserId)
+            .ToListAsync(cancellationToken);
+        
+        dbContext.RemoveRange(cartItems);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

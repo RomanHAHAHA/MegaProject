@@ -27,14 +27,10 @@ public class DeleteProductImageHandler(
         }
 
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        var deleted = await imagesRepository.DeleteAsync(image, cancellationToken);
-
-        if (!deleted)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            return BaseResponse.InternalServerError("Failed to delete image from DB");
-        }
         
+        imagesRepository.Delete(image);
+        await imagesRepository.SaveChangesAsync(cancellationToken);
+
         var deleteFileResult = await fileStorageService.DeleteFileAsync(
             image.ImagePath,
             cancellationToken);
@@ -47,20 +43,16 @@ public class DeleteProductImageHandler(
 
         if (image.IsMain)
         {
-            var success = await SetNewMainImageAsync(image.ProductId, cancellationToken);
-            
-            if (!success)
-            {
-                await transaction.RollbackAsync(cancellationToken);
-                return BaseResponse.InternalServerError("Failed to set new main image");
-            }
+            await SetNewMainImageAsync(image.ProductId, cancellationToken);
         }
         
+        await imagesRepository.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
+        
         return BaseResponse.Ok();
     }
     
-    private async Task<bool> SetNewMainImageAsync(
+    private async Task SetNewMainImageAsync(
         Guid productId, 
         CancellationToken cancellationToken)
     {
@@ -69,18 +61,12 @@ public class DeleteProductImageHandler(
 
         if (newMainImage is null)
         {
-            return true; 
+            return; 
         }
 
         newMainImage.IsMain = true;
-        var updated = await imagesRepository.UpdateAsync(newMainImage, cancellationToken);
-
-        if (updated)
-        {
-            await OnMainImageSet(newMainImage, cancellationToken);
-        }
         
-        return updated;
+        await OnMainImageSet(newMainImage, cancellationToken);
     }
     
     private async Task OnMainImageSet(

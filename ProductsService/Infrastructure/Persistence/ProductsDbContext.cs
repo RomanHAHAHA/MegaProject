@@ -1,5 +1,4 @@
-﻿using Common.Domain.Entities;
-using Common.Infrastructure.Persistence.Configurations;
+﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using ProductsService.Domain.Entities;
 
@@ -13,12 +12,14 @@ public class ProductsDbContext(DbContextOptions<ProductsDbContext> options) : Db
     
     public DbSet<ProductImage> ProductImages { get; set; }
     
-    public DbSet<OutboxMessage> OutboxMessages { get; set; }
-    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("products");
-        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+        
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductsDbContext).Assembly);
+        
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
     }
 }

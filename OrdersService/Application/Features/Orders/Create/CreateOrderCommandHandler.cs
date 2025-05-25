@@ -1,4 +1,5 @@
-﻿using Common.Domain.Models.Results;
+﻿using Common.Domain.Enums;
+using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
 using FluentValidation;
 using MassTransit;
@@ -33,9 +34,7 @@ public class CreateOrderCommandHandler(
             return BaseResponse.BadRequest("You must provide at least one item.");
         }
         
-        var user = await usersRepository.GetByIdAsync(
-            request.UserId,
-            cancellationToken);
+        var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
 
         if (user is null)
         {
@@ -45,34 +44,36 @@ public class CreateOrderCommandHandler(
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         
         var order = new Order(request.UserId);
-        var created = await ordersRepository.CreateAsync(order, cancellationToken);
+        
+        await ordersRepository.CreateAsync(order, cancellationToken);
 
-        if (!created)
+        order.AddDeliveryLocation(request.DeliveryLocationDto);
+        order.AddOrderItems(request.CartItems);
+        
+        await OnOrderCreated(order, cancellationToken);
+
+        var saved = await ordersRepository.SaveChangesAsync(cancellationToken);
+
+        if (!saved)
         {
             await transaction.RollbackAsync(cancellationToken);
             return BaseResponse.InternalServerError("Failed to create order");
         }
 
-        order.AddDeliveryLocation(request.DeliveryLocationDto);
-        order.AddOrderItems(request.CartItems);
-        
-        var updated = await ordersRepository.UpdateAsync(order, cancellationToken);
-
-        if (!updated)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            return BaseResponse.InternalServerError("Failed to update order");
-        }
-        
         await transaction.CommitAsync(cancellationToken);
-        await OnOrderCreated(request.UserId, cancellationToken);
         
         return BaseResponse.Ok();
     }
 
-    private async Task OnOrderCreated(Guid userId, CancellationToken cancellationToken)
+    private async Task OnOrderCreated(Order order, CancellationToken cancellationToken)
     {
-        var orderCreatedEvent = new OrderCreatedEvent(userId);
-        await publishEndpoint.Publish(orderCreatedEvent, cancellationToken);
+        await publishEndpoint.Publish(new SystemActionEvent
+        {
+            UserId = order.UserId,
+            ActionType = ActionType.Create,
+            Message = $"Order {order.Id} created"
+        }, cancellationToken);
+        
+        await publishEndpoint.Publish(new OrderCreatedEvent(order.UserId), cancellationToken);
     }
 }

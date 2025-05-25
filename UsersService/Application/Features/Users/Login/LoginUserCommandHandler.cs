@@ -1,4 +1,5 @@
-﻿using Common.Domain.Interfaces;
+﻿using Common.Domain.Enums;
+using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
 using FluentValidation;
@@ -16,9 +17,7 @@ public class LoginUserCommandHandler(
     IPublishEndpoint publishEndpoint, 
     IMediator mediator) : IRequestHandler<LoginUserCommand, BaseResponse<string>>
 {
-    public async Task<BaseResponse<string>> Handle(
-        LoginUserCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse<string>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
         var result = validator.Validate(request.UserLoginDto);
 
@@ -27,9 +26,8 @@ public class LoginUserCommandHandler(
             return BaseResponse<string>.BadRequest(result);
         }
         
-        var user = await usersRepository.GetByEmailAsync(
-            request.UserLoginDto.Email, 
-            cancellationToken);
+        var user = await usersRepository
+            .GetByEmailAsync(request.UserLoginDto.Email, cancellationToken);
 
         if (user is null)
         {
@@ -44,20 +42,27 @@ public class LoginUserCommandHandler(
         if (!passwordHasher.Verify(request.UserLoginDto.Password, user.PasswordHash))
         {
             await OnIncorrectPasswordEntered(user.Id, cancellationToken);
+            
             return BaseResponse<string>.BadRequest("Incorrect password");
         }
 
-        await PublicUserLoggedInEvent(user.Id, cancellationToken);
+        await OnUserLoggedId(user.Id, cancellationToken);
+        
         return await jwtProvider.GenerateTokenAsync(user, cancellationToken);
     }
-    private Task PublicUserLoggedInEvent(Guid userId, CancellationToken cancellationToken)
+    private Task OnUserLoggedId(Guid userId, CancellationToken cancellationToken)
         => mediator.Publish(new UserLoggedInEvent(userId), cancellationToken);
     
-    private async Task OnIncorrectPasswordEntered(
-        Guid userId, 
-        CancellationToken cancellationToken)
+    private async Task OnIncorrectPasswordEntered(Guid userId, CancellationToken cancellationToken)
     {
-        var incorrectPasswordAttemptEvent = new IncorrectPasswordAttemptEvent(userId);
-        await publishEndpoint.Publish(incorrectPasswordAttemptEvent, cancellationToken);
+        var systemActionEvent = new SystemActionEvent
+        {
+            UserId = userId,
+            ActionType = ActionType.IncorrectPasswordAttempt,
+            Message = "Incorrect password entered"
+        };
+        
+        await publishEndpoint.Publish(systemActionEvent, cancellationToken);
+        await usersRepository.SaveChangesAsync(cancellationToken);
     }
 }

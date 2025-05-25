@@ -27,13 +27,8 @@ public class SetMainImageCommandHandler(
         newMainImage.IsMain = true;
         
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        var newMainImageUpdated = await imagesRepository.UpdateAsync(newMainImage, cancellationToken);
-
-        if (!newMainImageUpdated)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            return BaseResponse.InternalServerError("Failed to set new main image");
-        }
+        
+        await imagesRepository.SaveChangesAsync(cancellationToken);
         
         var productImages = await imagesRepository
             .GetProductImagesAsync(newMainImage.ProductId, cancellationToken);
@@ -47,16 +42,11 @@ public class SetMainImageCommandHandler(
         }
         
         pastMainImage.IsMain = false;
-        var updatedPastMainImage = await imagesRepository.UpdateAsync(pastMainImage, cancellationToken);
 
-        if (!updatedPastMainImage)
-        {
-            await transaction.RollbackAsync(cancellationToken);
-            return BaseResponse.InternalServerError("Failed to update past main image");
-        }
-        
-        await transaction.CommitAsync(cancellationToken);
         await OnMainImageSet(newMainImage, cancellationToken);
+        
+        await imagesRepository.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
             
         return BaseResponse.Ok();
     }

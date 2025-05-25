@@ -6,12 +6,10 @@ using ReviewsService.Infrastructure.Persistence;
 
 namespace ReviewsService.Application.Features.Votes.Set;
 
-public class SetReviewVoteCommandHandler(
-    ReviewsDbContext dbContext) : IRequestHandler<SetReviewVoteCommand, BaseResponse>
+public class SetReviewVoteCommandHandler(ReviewsDbContext dbContext) : 
+    IRequestHandler<SetReviewVoteCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        SetReviewVoteCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(SetReviewVoteCommand request, CancellationToken cancellationToken)
     {
         var vote = await dbContext.ReviewsVotes
             .FirstOrDefaultAsync(v => 
@@ -21,16 +19,15 @@ public class SetReviewVoteCommandHandler(
                 cancellationToken);
 
         if (vote is null)
-        {
-            vote = new ReviewVote
+        {   
+            await dbContext.ReviewsVotes.AddAsync(new ReviewVote
             {
                 UserId = request.CurrentUserId,
                 ReviewUserId = request.ReviewUserId,
                 ReviewProductId = request.ReviewProductId,
                 VoteType = request.VoteType
-            };
-                
-            await dbContext.ReviewsVotes.AddAsync(vote, cancellationToken);
+            }, 
+            cancellationToken);
         }
         else if (vote.VoteType == request.VoteType)
         {
@@ -39,7 +36,6 @@ public class SetReviewVoteCommandHandler(
         else
         {
             vote.VoteType = request.VoteType;
-            dbContext.ReviewsVotes.Update(vote);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

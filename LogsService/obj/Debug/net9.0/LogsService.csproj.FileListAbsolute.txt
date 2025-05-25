@@ -179,3 +179,5 @@ D:\Rider\Projects\OLXKiller\LogsService\bin\Debug\net9.0\StackExchange.Redis.dll
 D:\Rider\Projects\OLXKiller\LogsService\bin\Debug\net9.0\MassTransit.dll
 D:\Rider\Projects\OLXKiller\LogsService\bin\Debug\net9.0\MassTransit.Abstractions.dll
 D:\Rider\Projects\OLXKiller\LogsService\bin\Debug\net9.0\MassTransit.RabbitMqTransport.dll
+D:\Rider\Projects\OLXKiller\LogsService\bin\Debug\net9.0\MassTransit.EntityFrameworkCoreIntegration.dll
+D:\Rider\Projects\OLXKiller\LogsService\obj\Debug\net9.0\LogsService.sourcelink.json

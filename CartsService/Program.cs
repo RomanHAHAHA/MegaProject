@@ -2,7 +2,7 @@ using CartsService.Application.Features.Products.Create;
 using CartsService.Domain.Interfaces;
 using CartsService.Infrastructure.Eventing.Consumers;
 using CartsService.Infrastructure.Persistence;
-using CartsService.Infrastructure.Persistence.Repositories.Base;
+using CartsService.Infrastructure.Persistence.Repositories;
 using Common.API.Extensions;
 using Common.Application.Options;
 using MassTransit;
@@ -30,24 +30,19 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(CreateProductCommandHandler).Assembly);
 });
 
-var jwtOptions = builder.Configuration
-    .GetSection(nameof(JwtOptions))
-    .Get<JwtOptions>() ?? throw new NullReferenceException(nameof(JwtOptions));
-
-var customCookieOptions = builder.Configuration
-    .GetSection(nameof(CustomCookieOptions))
-    .Get<CustomCookieOptions>() ?? throw new NullReferenceException(nameof(CustomCookieOptions));
-
-builder.Services.AddApiAuthorization(jwtOptions, customCookieOptions);
+builder.Services.AddApiAuthorization(builder.Configuration);
 
 builder.Services.AddMassTransit(bugConfigurator =>
 {
-    bugConfigurator.AddConsumer<ProductCreatedConsumer>();
-    bugConfigurator.AddConsumer<ProductUpdatedConsumer>();
-    bugConfigurator.AddConsumer<ProductMainImageSetConsumer>();
-    bugConfigurator.AddConsumer<OrderCreatedConsumer>();
-    
     bugConfigurator.SetKebabCaseEndpointNameFormatter();
+    bugConfigurator.AddConsumers(typeof(Program).Assembly);
+    
+    bugConfigurator.AddEntityFrameworkOutbox<CartsDbContext>(options =>
+    {
+        options.DuplicateDetectionWindow = TimeSpan.FromSeconds(30);
+        options.UseSqlServer();
+    });
+    
     bugConfigurator.UsingRabbitMq((context, configurator) =>
     {
         configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
@@ -69,10 +64,12 @@ builder.Services.AddMassTransit(bugConfigurator =>
         {
             e.ConfigureConsumer<ProductMainImageSetConsumer>(context);
         });
+        configurator.ReceiveEndpoint("carts-product-deleted", e =>
+        {
+            e.ConfigureConsumer<ProductDeletedConsumer>(context);
+        });
     });
 });
-
-builder.Logging.AddConsole();
 
 var app = builder.Build();
 

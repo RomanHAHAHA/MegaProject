@@ -1,5 +1,4 @@
-﻿using Common.Domain.Entities;
-using Common.Infrastructure.Persistence.Configurations;
+﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using ReviewsService.Domain.Entities;
 using ProductSnapshot = ReviewsService.Domain.Entities.ProductSnapshot;
@@ -15,13 +14,15 @@ public class ReviewsDbContext(DbContextOptions<ReviewsDbContext> options) : DbCo
     public DbSet<ProductSnapshot> ProductSnapshots { get; set; }
     
     public DbSet<ReviewVote> ReviewsVotes { get; set; }
-
-    public DbSet<OutboxMessage> OutboxMessages { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("reviews");
-        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+        
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ReviewsDbContext).Assembly);
+        
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
     }
 }

@@ -1,17 +1,14 @@
 ﻿using CartsService.Domain.Entities;
 using CartsService.Domain.Interfaces;
-using Common.Domain.Entities;
 using Common.Domain.Models.Results;
 using MediatR;
 
 namespace CartsService.Application.Features.CartItems.Delete;
 
-public class DeleteItemCommandHandler(
-    ICartsRepository cartsRepository) : IRequestHandler<DeleteItemCommand, BaseResponse>
+public class DeleteItemCommandHandler(ICartsRepository cartsRepository) : 
+    IRequestHandler<DeleteItemCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        DeleteItemCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(DeleteItemCommand request, CancellationToken cancellationToken)
     {
         var cartItem = await cartsRepository.GetByIdAsync(
             request.UserId,
@@ -22,8 +19,9 @@ public class DeleteItemCommandHandler(
         {
             return BaseResponse.NotFound(nameof(CartItem));
         }
-        
-        var removed = await cartsRepository.DeleteAsync(cartItem, cancellationToken);
+
+        cartsRepository.Delete(cartItem);
+        var removed = await cartsRepository.SaveChangesAsync(cancellationToken);
         
         return removed ?
             BaseResponse.Ok() : 

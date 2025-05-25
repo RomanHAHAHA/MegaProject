@@ -1,4 +1,5 @@
-﻿using Common.Domain.Models.Results;
+﻿using Common.Domain.Enums;
+using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
 using FluentValidation;
 using MassTransit;
@@ -31,16 +32,14 @@ public class RegisterUserCommandHandler(
 
         try
         {
-            var created = await usersRepository.CreateAsync(user, cancellationToken);
-
-            if (!created)
-            {
-                return BaseResponse<Guid>.InternalServerError("Failed to create user");
-            }
-
+            await usersRepository.CreateAsync(user, cancellationToken);
             await OnUserRegistered(user, cancellationToken);
+            
+            var created = await usersRepository.SaveChangesAsync(cancellationToken);
 
-            return user.Id;
+            return created ? 
+                user.Id : 
+                BaseResponse<Guid>.InternalServerError("Failed to create user");
         }
         catch (DbUpdateException exception) when 
             (exception.InnerException is SqlException { Number: 2627 })
@@ -53,11 +52,22 @@ public class RegisterUserCommandHandler(
         }
     }
 
-    private async Task OnUserRegistered(
-        User user,
-        CancellationToken cancellationToken)
+    private async Task OnUserRegistered(User user, CancellationToken cancellationToken)
     {
-        var userRegisteredEvent = new UserRegisteredEvent(user.Id, user.NickName, user.Email);
+        var dbActionPerformedEvent = new SystemActionEvent
+        {
+            UserId = user.Id,
+            ActionType = ActionType.Create,
+            Message = $"User {user.Id} registered"
+        };
+        
+        await publishEndpoint.Publish(dbActionPerformedEvent, cancellationToken); 
+        
+        var userRegisteredEvent = new UserRegisteredEvent(
+            user.Id, 
+            user.NickName, 
+            user.Email);
+        
         await publishEndpoint.Publish(userRegisteredEvent, cancellationToken);
     }
 }

@@ -4,13 +4,9 @@ namespace ReviewsService.Domain.Interfaces;
 
 public interface IUsersRepository
 {
-    Task<bool> CreateAsync(
-        UserSnapshot user,
-        CancellationToken cancellationToken = default);
+    Task CreateAsync(UserSnapshot user, CancellationToken cancellationToken = default);
 
-    Task<bool> UpdateAsync(
-        UserSnapshot user,
-        CancellationToken cancellationToken = default);
+    Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     Task<UserSnapshot?> GetByIdAsync(
         Guid userId,
@@ -20,7 +16,5 @@ public interface IUsersRepository
         Guid userId,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DeleteAsync(
-        UserSnapshot user,
-        CancellationToken cancellationToken = default);
+    void Delete(UserSnapshot user);
 }

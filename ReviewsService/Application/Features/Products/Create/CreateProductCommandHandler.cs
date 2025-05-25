@@ -8,9 +8,7 @@ public class CreateProductCommandHandler(
     IProductsRepository productRepository,
     ILogger<CreateProductCommandHandler> logger) : IRequestHandler<CreateProductCommand>
 {
-    public async Task Handle(
-        CreateProductCommand request, 
-        CancellationToken cancellationToken)
+    public async Task Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var product = new ProductSnapshot
         {
@@ -18,8 +16,10 @@ public class CreateProductCommandHandler(
             Name = request.Name,
             Price = request.Price
         };
+
+        await productRepository.CreateAsync(product, cancellationToken);
+        var created = await productRepository.SaveChangesAsync(cancellationToken);
         
-        var created = await productRepository.CreateAsync(product, cancellationToken);
         var message = created ? 
             $"Product with id {product.Id} created" : 
             $"Failed to create product with id {product.Id}";

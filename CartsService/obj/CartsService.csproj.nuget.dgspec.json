@@ -48,6 +48,10 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "MassTransit.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.4.1, )"
+            },
             "MassTransit.RabbitMQ": {
               "target": "Package",
               "version": "[8.4.1, )"

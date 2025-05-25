@@ -1,5 +1,4 @@
-﻿using Common.Domain.Entities;
-using Common.Domain.Interfaces;
+﻿using Common.Domain.Interfaces;
 using ProductsService.Domain.Entities;
 
 namespace ProductsService.Domain.Interfaces;

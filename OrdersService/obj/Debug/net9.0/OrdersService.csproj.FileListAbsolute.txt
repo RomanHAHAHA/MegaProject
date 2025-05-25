@@ -180,3 +180,5 @@ D:\Rider\Projects\OLXKiller\OrdersService\bin\Debug\net9.0\StackExchange.Redis.d
 D:\Rider\Projects\OLXKiller\OrdersService\bin\Debug\net9.0\MassTransit.dll
 D:\Rider\Projects\OLXKiller\OrdersService\bin\Debug\net9.0\MassTransit.Abstractions.dll
 D:\Rider\Projects\OLXKiller\OrdersService\bin\Debug\net9.0\MassTransit.RabbitMqTransport.dll
+D:\Rider\Projects\OLXKiller\OrdersService\bin\Debug\net9.0\MassTransit.EntityFrameworkCoreIntegration.dll
+D:\Rider\Projects\OLXKiller\OrdersService\obj\Debug\net9.0\OrdersService.sourcelink.json

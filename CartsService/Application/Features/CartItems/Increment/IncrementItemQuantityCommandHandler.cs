@@ -1,7 +1,8 @@
 ﻿using CartsService.Domain.Entities;
 using CartsService.Domain.Interfaces;
-using Common.Domain.Entities;
+using Common.Domain.Enums;
 using Common.Domain.Models.Results;
+using Common.Infrastructure.Messaging.Events;
 using MediatR;
 
 namespace CartsService.Application.Features.CartItems.Increment;
@@ -24,7 +25,7 @@ public class IncrementItemQuantityCommandHandler(
         }
         
         cartItem.Quantity++;
-        var updated = await cartsRepository.UpdateAsync(cartItem, cancellationToken);
+        var updated = await cartsRepository.SaveChangesAsync(cancellationToken);
         
         return updated ? 
             BaseResponse.Ok() :

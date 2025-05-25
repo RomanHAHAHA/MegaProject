@@ -1,5 +1,4 @@
-﻿using Common.Domain.Entities;
-using Common.Infrastructure.Persistence.Configurations;
+﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using UsersService.Domain.Entities;
 
@@ -14,13 +13,15 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
     public DbSet<Permission> Permissions { get; set; }
     
     public DbSet<RolePermission> RolePermissions { get; set; }
-    
-    public DbSet<OutboxMessage> OutboxMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("users");
-        modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+        
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserDbContext).Assembly);
+        
+        modelBuilder.AddInboxStateEntity();
+        modelBuilder.AddOutboxStateEntity();
+        modelBuilder.AddOutboxMessageEntity();
     }
 }

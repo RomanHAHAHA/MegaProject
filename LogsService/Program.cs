@@ -1,12 +1,10 @@
 using Common.API.Extensions;
-using Common.API.Middlewares;
 using Common.Application.Options;
 using Common.Domain.Interfaces;
 using LogsService.Application.Features.ActionLogs.GetLogsPagedList;
-using LogsService.Application.Features.ActionLogs.LogCrudAction;
+using LogsService.Application.Features.ActionLogs.LogSystemAction;
 using LogsService.Domain.Entiites;
 using LogsService.Domain.Interfaces;
-using LogsService.Infrastructure.Messaging.Consumers;
 using LogsService.Infrastructure.Persistence;
 using LogsService.Infrastructure.Persistence.Repositories;
 using MassTransit;
@@ -30,24 +28,19 @@ builder.Services.AddDbContext<ActionLogsDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL"));
 });
 
-var jwtOptions = builder.Configuration
-    .GetSection(nameof(JwtOptions))
-    .Get<JwtOptions>() ?? throw new NullReferenceException(nameof(JwtOptions));
-
-var customCookieOptions = builder.Configuration
-    .GetSection(nameof(CustomCookieOptions))
-    .Get<CustomCookieOptions>() ?? throw new NullReferenceException(nameof(CustomCookieOptions));
-
-builder.Services.AddApiAuthorization(jwtOptions, customCookieOptions);
-builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
+builder.Services.AddApiAuthorization(builder.Configuration);
 
 builder.Services.AddMassTransit(bugConfigurator =>
 {
-    bugConfigurator.AddConsumer<DbActionPerformedConsumer>();
-    bugConfigurator.AddConsumer<PasswordUpdatedConsumer>();
-    bugConfigurator.AddConsumer<IncorrectPasswordAttemptConsumer>();
-    
+    bugConfigurator.AddConsumers(typeof(Program).Assembly);
     bugConfigurator.SetKebabCaseEndpointNameFormatter();
+    
+    bugConfigurator.AddEntityFrameworkOutbox<ActionLogsDbContext>(options =>
+    {
+        options.DuplicateDetectionWindow = TimeSpan.FromSeconds(30);
+        options.UseSqlServer();
+    });
+    
     bugConfigurator.UsingRabbitMq((context, configurator) =>
     {
         configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>

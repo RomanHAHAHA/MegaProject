@@ -8,9 +8,7 @@ public class SetMainProductImageCommandHandler(
     ILogger<SetMainProductImageCommandHandler> logger) : 
     IRequestHandler<SetMainProductImageCommand>
 {
-    public async Task Handle(
-        SetMainProductImageCommand request, 
-        CancellationToken cancellationToken)
+    public async Task Handle(SetMainProductImageCommand request, CancellationToken cancellationToken)
     {
         var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
 
@@ -21,7 +19,7 @@ public class SetMainProductImageCommandHandler(
         }
         
         product.MainImagePath = request.ImagePath;
-        var updated = await productRepository.UpdateAsync(product, cancellationToken);
+        var updated = await productRepository.SaveChangesAsync(cancellationToken);
 
         var message = updated ? 
             $"Failed to update product with id: {request.ProductId}" : 

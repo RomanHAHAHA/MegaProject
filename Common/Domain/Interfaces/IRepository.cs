@@ -4,7 +4,7 @@ namespace Common.Domain.Interfaces;
 
 public interface IRepository<TEntity, in TKey> where TEntity : Entity<TKey>
 {
-    Task<bool> CreateAsync(TEntity entity, CancellationToken cancellationToken = default);
+    Task CreateAsync(TEntity entity, CancellationToken cancellationToken = default);
 
     Task<List<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
@@ -12,7 +12,9 @@ public interface IRepository<TEntity, in TKey> where TEntity : Entity<TKey>
     
     Task<bool> ExistsAsync(TKey id, CancellationToken cancellationToken = default);
     
-    Task<bool> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
+    void Delete(TEntity entity);
     
-    Task<bool> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
+    void Update(TEntity entity);
+    
+    Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

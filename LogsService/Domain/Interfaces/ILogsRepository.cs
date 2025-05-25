@@ -1,5 +1,4 @@
 ﻿using Common.Domain.Dtos;
-using Common.Domain.Entities;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
 using LogsService.Application.Features.ActionLogs.GetLogsPagedList;

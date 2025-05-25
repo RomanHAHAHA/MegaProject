@@ -1,15 +1,29 @@
-﻿using System.Text.Json;
+﻿using System.Net.Http.Headers;
+using System.Text.Json;
 using Common.Domain.Dtos;
+using Common.Domain.Interfaces;
 using OrdersService.Domain.Interfaces;
 
 namespace OrdersService.Application.Services;
 
-public class CartServiceClient(HttpClient httpClient) : ICartServiceClient
+public class CartServiceClient(
+    HttpClient httpClient,
+    IHttpUserContext httpContext) : ICartServiceClient
 {
     public async Task<IReadOnlyList<CartItemDto>> GetCartItemsAsync(
         Guid userId, 
         CancellationToken cancellationToken)
     {
+        var accessToken = httpContext.AccessToken; 
+
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            return [];
+        }
+
+        httpClient.DefaultRequestHeaders.Authorization = 
+            new AuthenticationHeaderValue("Bearer", accessToken);
+        
         var response = await httpClient.GetAsync(
             $"https://localhost:7059/api/carts/{userId}", 
             cancellationToken);

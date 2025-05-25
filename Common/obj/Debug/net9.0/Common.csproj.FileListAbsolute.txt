@@ -10,3 +10,4 @@ D:\Rider\Projects\OLXKiller\Common\obj\Debug\net9.0\Common.dll
 D:\Rider\Projects\OLXKiller\Common\obj\Debug\net9.0\refint\Common.dll
 D:\Rider\Projects\OLXKiller\Common\obj\Debug\net9.0\Common.pdb
 D:\Rider\Projects\OLXKiller\Common\obj\Debug\net9.0\ref\Common.dll
+D:\Rider\Projects\OLXKiller\Common\obj\Debug\net9.0\Common.sourcelink.json

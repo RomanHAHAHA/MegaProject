@@ -1,6 +1,8 @@
-﻿using Common.Domain.Entities;
+﻿using Common.Domain.Enums;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
+using Common.Infrastructure.Messaging.Events;
+using MassTransit;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +13,9 @@ using ProductsService.Domain.Interfaces;
 namespace ProductsService.Application.Features.Categories.Update;
 
 public class UpdateCategoryCommandHandler(
-    ICategoriesRepository categoriesRepository) : IRequestHandler<UpdateCategoryCommand, BaseResponse>
+    ICategoriesRepository categoriesRepository,
+    IPublishEndpoint publishEndpoint,
+    IHttpUserContext httpContext) : IRequestHandler<UpdateCategoryCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(
         UpdateCategoryCommand request, 
@@ -27,10 +31,11 @@ public class UpdateCategoryCommandHandler(
         }
         
         UpdateCategory(category, request.CategoryCreateDto);
+        await OnCategoryUpdated(category, cancellationToken);
 
         try
         {
-            var updated = await categoriesRepository.UpdateAsync(category, cancellationToken);
+            var updated = await categoriesRepository.SaveChangesAsync(cancellationToken);
 
             return updated ? 
                 BaseResponse.Ok() :
@@ -47,7 +52,19 @@ public class UpdateCategoryCommandHandler(
         }
     }
 
-    public void UpdateCategory(Category category, CategoryCreateDto categoryCreateDto)
+    private async Task OnCategoryUpdated(Category category, CancellationToken cancellationToken)
+    {
+        var systemActionPerformed = new SystemActionEvent
+        {
+            UserId = httpContext.UserId,
+            ActionType = ActionType.Update,
+            Message = $"Category \"{category.Name}\" updated"
+        };
+        
+        await publishEndpoint.Publish(systemActionPerformed, cancellationToken);
+    }
+    
+    private void UpdateCategory(Category category, CategoryCreateDto categoryCreateDto)
     {
         category.Name = categoryCreateDto.Name;
         category.Description = categoryCreateDto.Description;

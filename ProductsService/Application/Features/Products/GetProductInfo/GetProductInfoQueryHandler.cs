@@ -1,5 +1,8 @@
-﻿using Common.Domain.Entities;
+﻿using Common.Domain.Enums;
+using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
+using Common.Infrastructure.Messaging.Events;
+using MassTransit;
 using MediatR;
 using ProductsService.Application.Features.Categories.GetAll;
 using ProductsService.Domain.Entities;
@@ -7,8 +10,10 @@ using ProductsService.Domain.Interfaces;
 
 namespace ProductsService.Application.Features.Products.GetProductInfo;
 
-public class GetProductInfoQueryHandler(IProductsRepository productsRepository) : 
-    IRequestHandler<GetProductInfoQuery, BaseResponse<ProductInfoDto>>
+public class GetProductInfoQueryHandler(
+    IProductsRepository productsRepository,
+    IPublishEndpoint publishEndpoint,
+    IHttpUserContext httpContext) : IRequestHandler<GetProductInfoQuery, BaseResponse<ProductInfoDto>>
 {
     public async Task<BaseResponse<ProductInfoDto>> Handle(
         GetProductInfoQuery request, 
@@ -17,6 +22,8 @@ public class GetProductInfoQueryHandler(IProductsRepository productsRepository) 
         var product = await productsRepository
             .GetAllInfoByIdAsync(request.ProductId, cancellationToken);
 
+        await OnProductRead(request.ProductId, product, cancellationToken);
+        
         if (product is null)
         {
             return BaseResponse<ProductInfoDto>.NotFound(nameof(Product));
@@ -37,5 +44,22 @@ public class GetProductInfoQueryHandler(IProductsRepository productsRepository) 
                 .Select(i => new ShortImageDto(i.Id, i.ImagePath))
                 .ToList()
         };
+    }
+
+    private async Task OnProductRead(
+        Guid productId, 
+        Product? product, 
+        CancellationToken cancellationToken)
+    {
+        await publishEndpoint.Publish(new SystemActionEvent
+        {
+            UserId = httpContext.UserId,
+            ActionType = ActionType.Read,
+            Message = product is null ? 
+                $"Product {productId} not found" : 
+                $"Product {productId} read"
+        }, cancellationToken);
+        
+        await productsRepository.SaveChangesAsync(cancellationToken);
     }
 }

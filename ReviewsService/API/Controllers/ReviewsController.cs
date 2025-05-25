@@ -36,7 +36,7 @@ public class ReviewsController(
             return Conflict(new { descriprion = "You have not ordered this product" });
         }
             
-        var command = new CreateReviewCommand(reviewCreateDto);
+        var command = new CreateReviewCommand(reviewCreateDto, User.GetId());
         var response = await mediator.Send(command, cancellationToken);
         
         return this.HandleResponse(response);
@@ -48,7 +48,7 @@ public class ReviewsController(
         ReviewCreateDto reviewCreateDto,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateReviewCommand(reviewCreateDto);
+        var command = new UpdateReviewCommand(reviewCreateDto, User.GetId());
         var response = await mediator.Send(command, cancellationToken);
         return this.HandleResponse(response);
     }

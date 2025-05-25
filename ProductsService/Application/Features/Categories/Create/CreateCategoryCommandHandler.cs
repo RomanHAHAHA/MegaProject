@@ -1,11 +1,14 @@
-﻿using Common.Domain.Interfaces;
-using Common.Domain.Models;
+﻿using Common.Domain.Enums;
+using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
+using Common.Infrastructure.Messaging.Events;
 using FluentValidation;
+using MassTransit;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ProductsService.Application.Features.Categories.Common;
+using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 
 namespace ProductsService.Application.Features.Categories.Create;
@@ -13,11 +16,11 @@ namespace ProductsService.Application.Features.Categories.Create;
 public class CreateCategoryCommandHandler(
     ICategoriesRepository categoriesRepository,
     IValidator<CategoryCreateDto> validator,
-    CategoryFactory categoryFactory) : IRequestHandler<CreateCategoryCommand, BaseResponse>
+    CategoryFactory categoryFactory,
+    IPublishEndpoint publishEndpoint,
+    IHttpUserContext httpUserContext) : IRequestHandler<CreateCategoryCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        CreateCategoryCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         var validationResult = validator.Validate(request.CategoryCreateDto);
 
@@ -30,7 +33,10 @@ public class CreateCategoryCommandHandler(
 
         try
         {
-            var created = await categoriesRepository.CreateAsync(category, cancellationToken);
+            await categoriesRepository.CreateAsync(category, cancellationToken);
+            await OnCategoryCreated(category, cancellationToken);
+            
+            var created = await categoriesRepository.SaveChangesAsync(cancellationToken);
 
             return created ? 
                 BaseResponse.Ok() :
@@ -45,5 +51,15 @@ public class CreateCategoryCommandHandler(
         {
             return BaseResponse.InternalServerError();
         }
+    }
+
+    private async Task OnCategoryCreated(Category category, CancellationToken cancellationToken)
+    {
+        await publishEndpoint.Publish(new SystemActionEvent
+        {
+            UserId = httpUserContext.UserId,
+            ActionType = ActionType.Create,
+            Message = $"Category \"{category.Name}\" created"
+        }, cancellationToken);
     }
 }

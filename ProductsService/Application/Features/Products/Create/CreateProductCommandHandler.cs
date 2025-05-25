@@ -1,4 +1,6 @@
-﻿using Common.Domain.Models.Results;
+﻿using Common.Domain.Enums;
+using Common.Domain.Interfaces;
+using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
 using FluentValidation;
 using MassTransit;
@@ -13,11 +15,10 @@ public class CreateProductCommandHandler(
     IProductsRepository productsRepository,
     IValidator<ProductCreateDto> validator,
     ProductFactory productFactory,
-    IPublishEndpoint publishEndpoint) : IRequestHandler<CreateProductCommand, BaseResponse<Guid>>
+    IPublishEndpoint publishEndpoint,
+    IHttpUserContext httpContext) : IRequestHandler<CreateProductCommand, BaseResponse<Guid>>
 {
-    public async Task<BaseResponse<Guid>> Handle(
-        CreateProductCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse<Guid>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var validationResult = validator.Validate(request.ProductCreateDto);
 
@@ -27,26 +28,28 @@ public class CreateProductCommandHandler(
         }
         
         var product = productFactory.MapToEntity(request.ProductCreateDto);
-        var created = await productsRepository.CreateAsync(product, cancellationToken);
-
-        if (!created)
-        {
-            return BaseResponse<Guid>.InternalServerError("Failed to create product");
-        }
-
+        
+        await productsRepository.CreateAsync(product, cancellationToken);
         await OnProductCreated(product, cancellationToken);
-        return BaseResponse<Guid>.Ok(product.Id);
+        
+        var created = await productsRepository.SaveChangesAsync(cancellationToken);
+        
+        return created ?
+            BaseResponse<Guid>.Ok(product.Id) :
+            BaseResponse<Guid>.InternalServerError("Failed to create product");
     }
 
-    private async Task OnProductCreated(
-        Product product, 
-        CancellationToken cancellationToken)
+    private async Task OnProductCreated(Product product, CancellationToken cancellationToken)
     {
-        var productCreatedEvent = new ProductCreatedEvent(
-            product.Id,
-            product.Name,
-            product.Price);
+        await publishEndpoint.Publish(new SystemActionEvent
+        {
+            UserId = httpContext.UserId,
+            ActionType = ActionType.Create,
+            Message = $"Product {product.Id} created"
+        }, cancellationToken);
         
-        await publishEndpoint.Publish(productCreatedEvent, cancellationToken);
+        await publishEndpoint.Publish(
+            new ProductCreatedEvent(product.Id, product.Name, product.Price), 
+            cancellationToken);
     }
 }

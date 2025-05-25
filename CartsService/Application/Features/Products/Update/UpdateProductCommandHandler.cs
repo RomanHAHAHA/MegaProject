@@ -1,6 +1,4 @@
 ﻿using CartsService.Domain.Interfaces;
-using CartsService.Infrastructure.Persistence.Repositories;
-using CartsService.Infrastructure.Persistence.Repositories.Base;
 using MediatR;
 
 namespace CartsService.Application.Features.Products.Update;
@@ -21,8 +19,7 @@ public class UpdateProductCommandHandler(
         
         product.Name = request.Name;
         product.Price = request.Price;
-        
-        var updated  = await productRepository.UpdateAsync(product, cancellationToken);
+        var updated  = await productRepository.SaveChangesAsync(cancellationToken);
         
         var message = updated ? 
             $"Failed to update product with id: {request.Id}" : 

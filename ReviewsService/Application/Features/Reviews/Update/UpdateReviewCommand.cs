@@ -4,4 +4,6 @@ using ReviewsService.Domain.Dtos;
 
 namespace ReviewsService.Application.Features.Reviews.Update;
 
-public record UpdateReviewCommand(ReviewCreateDto ReviewCreateDto) : IRequest<BaseResponse>;
+public record UpdateReviewCommand(
+    ReviewCreateDto ReviewCreateDto,
+    Guid UserId) : IRequest<BaseResponse>;

@@ -1,14 +1,9 @@
 using Common.Application.Services;
 using Common.Domain.Interfaces;
-using Common.Infrastructure.Persistence.Repositories;
-using EmailService.Application.Handlers;
-using EmailService.Application.Options;
-using EmailService.Application.Services;
+using EmailService.Application.Features.EmailConfirmations.ConfirmEmail;
+using EmailService.Application.Features.EmailConfirmations.SendCode;
 using EmailService.Domain.Interfaces;
-using EmailService.Infrastructure.Eventing.Consumers;
-using EmailService.Infrastructure.Persistence;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,20 +22,12 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
 builder.Services.AddScoped<ICacheService<string>, CacheService<string>>();
-builder.Services.AddScoped<IOutboxMessagesRepository, OutboxMessagesRepository<EmailConfirmationDbContext>>();
-
-builder.Services.AddDbContext<EmailConfirmationDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL"));
-});
-
-//builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 
 builder.Services.AddMassTransit(bugConfigurator =>
 {
-    bugConfigurator.AddConsumer<UserRegisteredEventConsumer>();
-    
+    bugConfigurator.AddConsumers(typeof(Program).Assembly);
     bugConfigurator.SetKebabCaseEndpointNameFormatter();
+    
     bugConfigurator.UsingRabbitMq((context, configurator) =>
     {
         configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>

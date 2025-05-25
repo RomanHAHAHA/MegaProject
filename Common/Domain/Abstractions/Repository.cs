@@ -16,12 +16,11 @@ public abstract class Repository<TDbContext, TEntity, TKey> : IRepository<TEntit
         _dbSet = AppDbContext.Set<TEntity>();
     }
 
-    public virtual async Task<bool> CreateAsync(
+    public virtual async Task CreateAsync(
         TEntity entity, 
         CancellationToken cancellationToken = default)
     {
-        await _dbSet.AddAsync(entity, cancellationToken);
-        return await AppDbContext.SaveChangesAsync(cancellationToken) > 0; 
+        await _dbSet.AddAsync(entity, cancellationToken); 
     }
 
     public virtual async Task<List<TEntity>> GetAllAsync(
@@ -42,21 +41,9 @@ public abstract class Repository<TDbContext, TEntity, TKey> : IRepository<TEntit
             .AnyAsync(e => e.Id!.Equals(id), cancellationToken);
     }
 
-    public virtual async Task<bool> DeleteAsync(
-        TEntity entity, 
-        CancellationToken cancellationToken = default)
-    {
-        _dbSet.Remove(entity);
-        return await AppDbContext.SaveChangesAsync(cancellationToken) > 0;
-    }
-
-    public virtual async Task<bool> UpdateAsync(
-        TEntity entity, 
-        CancellationToken cancellationToken = default)
-    {
-        _dbSet.Update(entity);
-        return await AppDbContext.SaveChangesAsync(cancellationToken) > 0;
-    }
+    public virtual void Delete(TEntity entity) => _dbSet.Remove(entity);
+    
+    public virtual void Update(TEntity entity) => _dbSet.Update(entity);
 
     public virtual async Task<TEntity?> GetByIdAsync(
         TKey id, 
@@ -64,4 +51,7 @@ public abstract class Repository<TDbContext, TEntity, TKey> : IRepository<TEntit
     {
         return await _dbSet.FirstOrDefaultAsync(e => e.Id!.Equals(id), cancellationToken);
     }
+    
+    public virtual async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
+        => await AppDbContext.SaveChangesAsync(cancellationToken) > 0; 
 }

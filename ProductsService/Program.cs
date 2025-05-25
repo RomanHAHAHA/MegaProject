@@ -3,7 +3,6 @@ using Common.API.Middlewares;
 using Common.Application.Options;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
-using Common.Infrastructure.Persistence.Repositories;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +14,7 @@ using ProductsService.Application.Features.Products.GetPagedList;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Infrastructure.Persistence;
-using ProductsService.Infrastructure.Persistence.Repositories.Base;
-using ProductsService.Infrastructure.Persistence.Repositories.Logging;
+using ProductsService.Infrastructure.Persistence.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,36 +38,29 @@ builder.Services.AddTransient<CategoryFactory>();
 builder.Services.AddTransient<IFileStorageService, FileStorageService>();
 
 builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
-builder.Services.Decorate<IProductsRepository, LoggingProductsRepository>();
 builder.Services.AddScoped<IFilterStrategy<Product, ProductFilter>, ProductFilterStrategy>();
 builder.Services.AddScoped<ISortStrategy<Product>, ProductSortStrategy>();
 
 builder.Services.AddScoped<ICategoriesRepository, CategoriesRepository>();
-builder.Services.Decorate<ICategoriesRepository, LoggingCategoriesRepository>();
 
 builder.Services.AddScoped<IProductImagesRepository, ProductImagesRepository>();
-builder.Services.Decorate<IProductImagesRepository, LoggingProductImagesRepository>();
-
-builder.Services.AddScoped<IOutboxMessagesRepository, OutboxMessagesRepository<ProductsDbContext>>();
 
 builder.Services.AddDbContext<ProductsDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL"));
 });
 
-var jwtOptions = builder.Configuration
-    .GetSection(nameof(JwtOptions))
-    .Get<JwtOptions>() ?? throw new NullReferenceException(nameof(JwtOptions));
-
-var customCookieOptions = builder.Configuration
-    .GetSection(nameof(CustomCookieOptions))
-    .Get<CustomCookieOptions>() ?? throw new NullReferenceException(nameof(CustomCookieOptions));
-
-builder.Services.AddApiAuthorization(jwtOptions, customCookieOptions);
+builder.Services.AddApiAuthorization(builder.Configuration);
 builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
 
 builder.Services.AddMassTransit(bugConfigurator =>
 {
+    bugConfigurator.AddEntityFrameworkOutbox<ProductsDbContext>(options =>
+    {
+        options.QueryDelay = TimeSpan.FromSeconds(1);
+        options.UseSqlServer().UseBusOutbox();
+    });
+    
     bugConfigurator.SetKebabCaseEndpointNameFormatter();
     bugConfigurator.UsingRabbitMq((context, configurator) =>
     {

@@ -2,6 +2,4 @@
 
 namespace Common.Infrastructure.Messaging.Events;
 
-public record UserAvatarUpdatedEvent(
-    Guid UserId,
-    string AvatarPath) : BaseEvent;
+public record UserAvatarUpdatedEvent(Guid UserId, string AvatarPath) : BaseEvent;

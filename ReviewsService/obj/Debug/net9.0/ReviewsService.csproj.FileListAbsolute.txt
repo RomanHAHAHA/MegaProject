@@ -179,3 +179,5 @@ D:\Rider\Projects\OLXKiller\ReviewsService\obj\Debug\net9.0\ref\ReviewsService.d
 D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\MassTransit.dll
 D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\MassTransit.Abstractions.dll
 D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\MassTransit.RabbitMqTransport.dll
+D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\MassTransit.EntityFrameworkCoreIntegration.dll
+D:\Rider\Projects\OLXKiller\ReviewsService\obj\Debug\net9.0\ReviewsService.sourcelink.json

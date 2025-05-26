@@ -14,7 +14,8 @@ public class CreateProductCommandHandler(
         {
             Id = request.Id,
             Name = request.Name,
-            Price = request.Price
+            Price = request.Price,
+            StockQuantity = request.StockQuantity
         };
 
         await productRepository.CreateAsync(product, cancellationToken);

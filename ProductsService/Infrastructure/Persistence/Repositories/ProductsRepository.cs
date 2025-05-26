@@ -58,4 +58,16 @@ public class ProductsRepository(ProductsDbContext dbContext) :
             .Include(p => p.Categories)
             .FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
     }
+
+    public async Task<int?> GetQuantityById(
+        Guid productId,
+        CancellationToken cancellationToken = default)
+    {
+        var product = await AppDbContext.Products
+            .AsNoTracking()
+            .Where(p => p.Id == productId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return product?.StockQuantity;
+    }
 }

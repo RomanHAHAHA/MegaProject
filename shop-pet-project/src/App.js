@@ -1,27 +1,48 @@
-import logo from './logo.svg';
+import { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
-const f = 1;
+  const [data, setData] = useState('');
+  const [signature, setSignature] = useState('');
+
+  useEffect(() => {
+    fetch('https://localhost:7146/api/payments/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: 100,
+        currency: 'UAH',
+        description: 'Оплата товару',
+        orderId: 'ORDER123',
+        resultUrl: 'https://localhost:3000/payment-success'
+      })
+    })
+      .then(res => res.json())
+      .then(res => {
+        setData(res.data);
+        setSignature(res.signature);
+      });
+  }, []);
 
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+      <h1>Оплата через LiqPay</h1>
+      {data && signature ? (
+        <form
+          method="POST"
+          action="https://www.liqpay.ua/api/3/checkout"
+          acceptCharset="utf-8"
         >
-          Learn React
-        </a>
-      </header>
+          <input type="hidden" name="data" value={data} />
+          <input type="hidden" name="signature" value={signature} />
+          <button type="submit">Перейти до оплати</button>
+        </form>
+      ) : (
+        <p>Завантаження даних платежу...</p>
+      )}
     </div>
   );
 }
 
 export default App;
+

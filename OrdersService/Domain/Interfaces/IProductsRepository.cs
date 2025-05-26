@@ -11,4 +11,8 @@ public interface IProductRepository
     void Delete(ProductSnapshot product);
     
     Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    Task<List<ProductSnapshot>> GetWithIdsAsync(
+        List<Guid> ids,
+        CancellationToken cancellationToken = default);
 }

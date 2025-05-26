@@ -1,4 +1,5 @@
-﻿using ReviewsService.Domain.Enums;
+﻿using ReviewsService.Application.Features.Reviews.Create;
+using ReviewsService.Domain.Enums;
 
 namespace ReviewsService.Domain.Entities;
 
@@ -21,4 +22,17 @@ public class Review
     public DateTime CreatedAt { get; set; }
 
     public List<ReviewVote> Votes { get; set; } = [];
+
+    public static Review FromCreateDto(ReviewCreateDto reviewCreateDto, Guid userId)
+    {
+        return new Review
+        {
+            UserId = userId,
+            ProductId = reviewCreateDto.ProductId,
+            Text = reviewCreateDto.Text,
+            Rate = reviewCreateDto.Rate,
+            Status = ReviewStatus.Pending,
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
 }

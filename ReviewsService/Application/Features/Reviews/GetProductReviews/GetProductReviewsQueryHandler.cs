@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using ReviewsService.Domain.Dtos;
 using ReviewsService.Domain.Interfaces;
 
 namespace ReviewsService.Application.Features.Reviews.GetProductReviews;

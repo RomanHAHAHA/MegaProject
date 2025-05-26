@@ -1,6 +1,6 @@
 ﻿using Common.Domain.Models.Results;
 using MediatR;
-using ReviewsService.Domain.Dtos;
+using ReviewsService.Application.Features.Reviews.Create;
 
 namespace ReviewsService.Application.Features.Reviews.Update;
 

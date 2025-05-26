@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "GUI0xgNhXe0=",
+  "dgSpecHash": "3mxA5yzjW2U=",
   "success": true,
   "projectFilePath": "D:\\Rider\\Projects\\OLXKiller\\UsersService\\UsersService.csproj",
   "expectedPackageFiles": [
@@ -84,6 +84,8 @@
     "C:\\Users\\admin\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8\\pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\rabbitmq.client\\7.1.2\\rabbitmq.client.7.1.2.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\scrutor\\6.0.1\\scrutor.6.0.1.nupkg.sha512",
+    "C:\\Users\\admin\\.nuget\\packages\\sharpgrip.fluentvalidation.autovalidation.mvc\\1.5.0\\sharpgrip.fluentvalidation.autovalidation.mvc.1.5.0.nupkg.sha512",
+    "C:\\Users\\admin\\.nuget\\packages\\sharpgrip.fluentvalidation.autovalidation.shared\\1.5.0\\sharpgrip.fluentvalidation.autovalidation.shared.1.5.0.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\stackexchange.redis\\2.8.37\\stackexchange.redis.2.8.37.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\swashbuckle.aspnetcore\\6.6.2\\swashbuckle.aspnetcore.6.6.2.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\6.6.2\\swashbuckle.aspnetcore.swagger.6.6.2.nupkg.sha512",

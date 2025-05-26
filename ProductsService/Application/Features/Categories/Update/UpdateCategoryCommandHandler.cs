@@ -6,8 +6,8 @@ using MassTransit;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using ProductsService.Application.Features.Categories.Common;
 using ProductsService.Domain.Entities;
+using ProductsService.Domain.Extensions;
 using ProductsService.Domain.Interfaces;
 
 namespace ProductsService.Application.Features.Categories.Update;
@@ -17,9 +17,7 @@ public class UpdateCategoryCommandHandler(
     IPublishEndpoint publishEndpoint,
     IHttpUserContext httpContext) : IRequestHandler<UpdateCategoryCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        UpdateCategoryCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         var category = await categoriesRepository.GetByIdAsync(
             request.CategoryId, 
@@ -30,7 +28,8 @@ public class UpdateCategoryCommandHandler(
             return BaseResponse.NotFound(nameof(Category));
         }
         
-        UpdateCategory(category, request.CategoryCreateDto);
+        category.UpdateFromCreateDto(request.CategoryCreateDto);
+        
         await OnCategoryUpdated(category, cancellationToken);
 
         try
@@ -54,19 +53,12 @@ public class UpdateCategoryCommandHandler(
 
     private async Task OnCategoryUpdated(Category category, CancellationToken cancellationToken)
     {
-        var systemActionPerformed = new SystemActionEvent
-        {
-            UserId = httpContext.UserId,
-            ActionType = ActionType.Update,
-            Message = $"Category \"{category.Name}\" updated"
-        };
-        
-        await publishEndpoint.Publish(systemActionPerformed, cancellationToken);
-    }
-    
-    private void UpdateCategory(Category category, CategoryCreateDto categoryCreateDto)
-    {
-        category.Name = categoryCreateDto.Name;
-        category.Description = categoryCreateDto.Description;
+        await publishEndpoint.Publish(
+            new SystemActionEvent
+            {
+                UserId = httpContext.UserId,
+                ActionType = ActionType.Update,
+                Message = $"Category \"{category.Name}\" updated"
+            }, cancellationToken);
     }
 }

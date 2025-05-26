@@ -1,7 +1,7 @@
 ﻿using Common.Domain.Abstractions;
 using Common.Domain.Dtos;
+using Common.Domain.Enums;
 using OrdersService.Domain.Dtos;
-using OrdersService.Domain.Enums;
 
 namespace OrdersService.Domain.Entities;
 

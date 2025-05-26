@@ -1,8 +1,8 @@
 ﻿using Common.Domain.Abstractions;
+using Common.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using OrdersService.Domain.Dtos;
 using OrdersService.Domain.Entities;
-using OrdersService.Domain.Enums;
 using OrdersService.Domain.Interfaces;
 
 namespace OrdersService.Infrastructure.Persistence.Repositories;

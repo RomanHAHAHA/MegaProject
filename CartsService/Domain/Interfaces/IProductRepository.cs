@@ -11,4 +11,8 @@ public interface IProductRepository
     void Delete(ProductSnapshot product);
     
     Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    Task<int?> GetStockQuantityById(
+        Guid productId,
+        CancellationToken cancellationToken = default);
 }

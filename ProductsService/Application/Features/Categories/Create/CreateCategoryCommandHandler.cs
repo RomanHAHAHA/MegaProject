@@ -2,12 +2,10 @@
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
-using FluentValidation;
 using MassTransit;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using ProductsService.Application.Features.Categories.Common;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 
@@ -15,21 +13,12 @@ namespace ProductsService.Application.Features.Categories.Create;
 
 public class CreateCategoryCommandHandler(
     ICategoriesRepository categoriesRepository,
-    IValidator<CategoryCreateDto> validator,
-    CategoryFactory categoryFactory,
     IPublishEndpoint publishEndpoint,
     IHttpUserContext httpUserContext) : IRequestHandler<CreateCategoryCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request.CategoryCreateDto);
-
-        if (!validationResult.IsValid)
-        {
-            return BaseResponse.BadRequest(validationResult);
-        }
-        
-        var category = categoryFactory.ToEntity(request.CategoryCreateDto);
+        var category = Category.FromCreateDto(request.CategoryCreateDto);
 
         try
         {
@@ -40,7 +29,7 @@ public class CreateCategoryCommandHandler(
 
             return created ? 
                 BaseResponse.Ok() :
-                BaseResponse.InternalServerError("Failed to create category");
+                BaseResponse.InternalServerError();
         }
         catch (DbUpdateException exception) when 
             (exception.InnerException is SqlException { Number: 2601 })

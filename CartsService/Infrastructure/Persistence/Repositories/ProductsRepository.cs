@@ -25,4 +25,16 @@ public class ProductsRepository(CartsDbContext dbContext) : IProductRepository
 
     public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
         => await dbContext.SaveChangesAsync(cancellationToken) > 0;
+
+    public async Task<int?> GetStockQuantityById(
+        Guid productId,
+        CancellationToken cancellationToken = default)
+    {
+        var product = await dbContext.ProductSnapshots
+            .AsNoTracking()
+            .Where(p => p.Id == productId)
+            .FirstOrDefaultAsync(cancellationToken);
+        
+        return product?.StockQuantity;
+    }
 }

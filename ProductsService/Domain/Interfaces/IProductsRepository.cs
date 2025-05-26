@@ -1,5 +1,4 @@
 ﻿using Common.Domain.Dtos;
-using Common.Domain.Entities;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
 using ProductsService.Application.Features.Products.GetPagedList;
@@ -24,6 +23,10 @@ public interface IProductsRepository : IRepository<Product, Guid>
         CancellationToken cancellationToken = default);
     
     Task<Product?> GetByIdWithCategories(
+        Guid productId,
+        CancellationToken cancellationToken = default);
+
+    Task<int?> GetQuantityById(
         Guid productId,
         CancellationToken cancellationToken = default);
 }

@@ -9,7 +9,6 @@ using ReviewsService.Application.Features.Reviews.GetPendingReviews;
 using ReviewsService.Application.Features.Reviews.GetProductReviews;
 using ReviewsService.Application.Features.Reviews.SetStatus;
 using ReviewsService.Application.Features.Reviews.Update;
-using ReviewsService.Domain.Dtos;
 using ReviewsService.Domain.Enums;
 using ReviewsService.Domain.Interfaces;
 

@@ -17,11 +17,16 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Scrutor" Version="6.0.1" />
+        <PackageReference Include="SharpGrip.FluentValidation.AutoValidation.Mvc" Version="1.5.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Common\Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Application\Features\Products\UpdateStockQantity\" />
     </ItemGroup>
 
 </Project>

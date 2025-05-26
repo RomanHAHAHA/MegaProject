@@ -3,6 +3,7 @@ using CartsService.Domain.Interfaces;
 using Common.Domain.Entities;
 using Common.Domain.Models.Results;
 using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace CartsService.Application.Features.CartItems.Create;
 
@@ -39,8 +40,20 @@ public class AddProductToCartCommandHandler(
         await cartsRepository.CreateAsync(cartItem, cancellationToken);
         var created = await cartsRepository.SaveChangesAsync(cancellationToken);
 
-        return created ? 
-            BaseResponse.Ok() :
-            BaseResponse.InternalServerError("Failed to add product to cart");
+        if (!created)
+        {
+            return BaseResponse.InternalServerError();
+        }
+        
+        var stockQuantity = await productRepository
+            .GetStockQuantityById(request.ProductId, cancellationToken);
+
+        return stockQuantity switch
+        {
+            null => BaseResponse.NotFound("Product"),
+            0 => BaseResponse.Conflict("Stock quantity is zero"),
+            <= 5 => BaseResponse.Ok("Warning: only few items left on stock"),
+            _ => BaseResponse.Ok()
+        }; 
     }
 }

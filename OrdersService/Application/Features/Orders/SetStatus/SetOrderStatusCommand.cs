@@ -1,6 +1,6 @@
-﻿using Common.Domain.Models.Results;
+﻿using Common.Domain.Enums;
+using Common.Domain.Models.Results;
 using MediatR;
-using OrdersService.Domain.Enums;
 
 namespace OrdersService.Application.Features.Orders.SetStatus;
 

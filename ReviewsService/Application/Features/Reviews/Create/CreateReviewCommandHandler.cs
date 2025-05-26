@@ -12,13 +12,11 @@ public class CreateReviewCommandHandler(
     IReviewsRepository reviewsRepository,
     IUsersRepository usersRepository,
     IProductsRepository productsRepository,
-    ReviewsFactory reviewsFactory,
     IPublishEndpoint publisher) : IRequestHandler<CreateReviewCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
     {
-        var userExist = await usersRepository
-            .ExistsAsync(request.UserId, cancellationToken);
+        var userExist = await usersRepository.ExistsAsync(request.UserId, cancellationToken);
 
         if (!userExist)
         {
@@ -33,7 +31,7 @@ public class CreateReviewCommandHandler(
             return BaseResponse.NotFound(nameof(ProductSnapshot));
         }
         
-        var review = reviewsFactory.CreateFromDto(request.ReviewCreateDto, request.UserId);
+        var review = Review.FromCreateDto(request.ReviewCreateDto, request.UserId);
         
         await reviewsRepository.CreateAsync(review, cancellationToken);
         await OnReviewCreated(request, cancellationToken);

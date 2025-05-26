@@ -3,7 +3,7 @@ using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
 using MassTransit;
 using MediatR;
-using ReviewsService.Domain.Dtos;
+using ReviewsService.Application.Features.Reviews.Create;
 using ReviewsService.Domain.Entities;
 using ReviewsService.Domain.Interfaces;
 

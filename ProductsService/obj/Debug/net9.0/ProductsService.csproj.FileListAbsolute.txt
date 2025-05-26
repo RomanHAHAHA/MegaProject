@@ -182,3 +182,5 @@ D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\MassTransit.Abstrac
 D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\MassTransit.RabbitMqTransport.dll
 D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\MassTransit.EntityFrameworkCoreIntegration.dll
 D:\Rider\Projects\OLXKiller\ProductsService\obj\Debug\net9.0\ProductsService.sourcelink.json
+D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Mvc.dll
+D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Shared.dll

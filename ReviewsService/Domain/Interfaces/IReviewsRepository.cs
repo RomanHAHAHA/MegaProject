@@ -1,4 +1,5 @@
-﻿using ReviewsService.Domain.Dtos;
+﻿using ReviewsService.Application.Features.Reviews.GetPendingReviews;
+using ReviewsService.Application.Features.Reviews.GetProductReviews;
 using ReviewsService.Domain.Entities;
 
 namespace ReviewsService.Domain.Interfaces;

@@ -2,10 +2,8 @@
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
-using FluentValidation;
 using MassTransit;
 using MediatR;
-using ProductsService.Application.Features.Products.Common;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 
@@ -13,21 +11,12 @@ namespace ProductsService.Application.Features.Products.Create;
 
 public class CreateProductCommandHandler(
     IProductsRepository productsRepository,
-    IValidator<ProductCreateDto> validator,
-    ProductFactory productFactory,
     IPublishEndpoint publishEndpoint,
     IHttpUserContext httpContext) : IRequestHandler<CreateProductCommand, BaseResponse<Guid>>
 {
     public async Task<BaseResponse<Guid>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request.ProductCreateDto);
-
-        if (!validationResult.IsValid)
-        {
-            return BaseResponse<Guid>.BadRequest(validationResult);
-        }
-        
-        var product = productFactory.MapToEntity(request.ProductCreateDto);
+        var product = Product.FromCreateDto(request.ProductCreateDto);
         
         await productsRepository.CreateAsync(product, cancellationToken);
         await OnProductCreated(product, cancellationToken);
@@ -49,7 +38,7 @@ public class CreateProductCommandHandler(
         }, cancellationToken);
         
         await publishEndpoint.Publish(
-            new ProductCreatedEvent(product.Id, product.Name, product.Price), 
+            new ProductCreatedEvent(product.Id, product.Name, product.Price, product.StockQuantity), 
             cancellationToken);
     }
 }

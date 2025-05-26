@@ -1,10 +1,9 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Domain.Dtos;
+using Common.Domain.Enums;
 using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
-using FluentValidation;
 using MassTransit;
 using MediatR;
-using OrdersService.Domain.Dtos;
 using OrdersService.Domain.Entities;
 using OrdersService.Domain.Interfaces;
 using OrdersService.Infrastructure.Persistence;
@@ -15,20 +14,12 @@ public class CreateOrderCommandHandler(
     IOrdersRepository ordersRepository,
     IUsersRepository usersRepository,
     OrdersDbContext dbContext,
-    IValidator<DeliveryLocationCreateDto> validator,
     IPublishEndpoint publishEndpoint) : IRequestHandler<CreateOrderCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(
         CreateOrderCommand request, 
         CancellationToken cancellationToken)
     {
-        var validationResult = validator.Validate(request.DeliveryLocationDto);
-
-        if (!validationResult.IsValid)
-        {
-            return BaseResponse.BadRequest(validationResult);
-        }
-
         if (request.CartItems.Count == 0)
         {
             return BaseResponse.BadRequest("You must provide at least one item.");
@@ -50,7 +41,7 @@ public class CreateOrderCommandHandler(
         order.AddDeliveryLocation(request.DeliveryLocationDto);
         order.AddOrderItems(request.CartItems);
         
-        await OnOrderCreated(order, cancellationToken);
+        await OnOrderCreated(order, request.CartItems, cancellationToken);
 
         var saved = await ordersRepository.SaveChangesAsync(cancellationToken);
 
@@ -61,11 +52,13 @@ public class CreateOrderCommandHandler(
         }
 
         await transaction.CommitAsync(cancellationToken);
-        
         return BaseResponse.Ok();
     }
 
-    private async Task OnOrderCreated(Order order, CancellationToken cancellationToken)
+    private async Task OnOrderCreated(
+        Order order,
+        List<CartItemDto> cartItems, 
+        CancellationToken cancellationToken)
     {
         await publishEndpoint.Publish(new SystemActionEvent
         {
@@ -74,6 +67,6 @@ public class CreateOrderCommandHandler(
             Message = $"Order {order.Id} created"
         }, cancellationToken);
         
-        await publishEndpoint.Publish(new OrderCreatedEvent(order.UserId), cancellationToken);
+        await publishEndpoint.Publish(new OrderCreatedEvent(order.UserId, cartItems), cancellationToken);
     }
 }

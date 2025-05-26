@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using Common.Domain.Models;
 using Common.Domain.Models.Results;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -14,16 +13,16 @@ public static class ControllerExtensions
     {
         if (baseResponse.IsSuccess)
         {
-            return controller.Ok();
+            return controller.Ok(new { message = baseResponse.Description });
         }
 
-        if (baseResponse is { Error: ValidationResult validationResult, Status: HttpStatusCode.BadRequest })
+        if (baseResponse is { Description: ValidationResult validationResult, Status: HttpStatusCode.BadRequest })
         {
             var errors = validationResult.ToDictionary();
             return controller.BadRequest(new { errors });
         }
 
-        return CreateResponse(controller, baseResponse.Status, baseResponse.Error);
+        return CreateResponse(controller, baseResponse.Status, baseResponse.Description);
     }
 
     public static IActionResult HandleResponse<T>(

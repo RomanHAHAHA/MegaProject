@@ -41,17 +41,23 @@ public class BaseResponse<T>(
     public static implicit operator BaseResponse<T>(T value) => Ok(value);
 }
 
-public class BaseResponse(
-    HttpStatusCode statusCode = HttpStatusCode.OK,
-    object? error = null)
+public class BaseResponse
 {
-    public object? Error { get; set; } = error;
+    public object? Description { get; set; } 
 
-    public HttpStatusCode Status { get; set; } = statusCode;
+    public HttpStatusCode Status { get; set; }
 
     public bool IsSuccess => Status == HttpStatusCode.OK;
 
     public bool IsFailure => !IsSuccess;
+    
+    private BaseResponse(
+        HttpStatusCode statusCode = HttpStatusCode.OK,
+        object? description = null)
+    {
+        Status = statusCode;
+        Description = description;
+    }
 
     public static BaseResponse NotFound(string notFoundEntityName)
     {
@@ -60,7 +66,7 @@ public class BaseResponse(
             $"{notFoundEntityName} was not found");
     }
 
-    public static BaseResponse Ok() => new();
+    public static BaseResponse Ok(string message = "") => new();
 
     public static BaseResponse InternalServerError(string error = "Unexpected error occured during the request") 
         => new(HttpStatusCode.InternalServerError, error);

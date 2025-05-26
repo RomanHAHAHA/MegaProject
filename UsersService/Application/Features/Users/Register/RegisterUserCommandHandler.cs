@@ -1,7 +1,7 @@
 ﻿using Common.Domain.Enums;
+using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events;
-using FluentValidation;
 using MassTransit;
 using MediatR;
 using Microsoft.Data.SqlClient;
@@ -13,22 +13,12 @@ namespace UsersService.Application.Features.Users.Register;
 
 public class RegisterUserCommandHandler(
     IUsersRepository usersRepository,
-    IValidator<UserRegisterDto> userRegisterValidator,
-    UserFactory userFactory,
+    IPasswordHasher passwordHasher,
     IPublishEndpoint publishEndpoint) : IRequestHandler<RegisterUserCommand, BaseResponse<Guid>>
 {
-    public async Task<BaseResponse<Guid>> Handle(
-        RegisterUserCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        var result = userRegisterValidator.Validate(request.RegisterDto);
-
-        if (!result.IsValid)
-        {
-            return BaseResponse<Guid>.BadRequest(result);
-        }
-        
-        var user = userFactory.CreateFromRegisterDto(request.RegisterDto);
+        var user = User.FromRegisterDto(request.RegisterDto, passwordHasher);
 
         try
         {
@@ -54,20 +44,16 @@ public class RegisterUserCommandHandler(
 
     private async Task OnUserRegistered(User user, CancellationToken cancellationToken)
     {
-        var dbActionPerformedEvent = new SystemActionEvent
-        {
-            UserId = user.Id,
-            ActionType = ActionType.Create,
-            Message = $"User {user.Id} registered"
-        };
+        await publishEndpoint.Publish(
+            new SystemActionEvent
+            {
+                UserId = user.Id,
+                ActionType = ActionType.Create,
+                Message = $"User {user.Id} registered"
+            }, cancellationToken); 
         
-        await publishEndpoint.Publish(dbActionPerformedEvent, cancellationToken); 
-        
-        var userRegisteredEvent = new UserRegisteredEvent(
-            user.Id, 
-            user.NickName, 
-            user.Email);
-        
-        await publishEndpoint.Publish(userRegisteredEvent, cancellationToken);
+        await publishEndpoint.Publish(
+            new UserRegisteredEvent(user.Id, user.NickName, user.Email), 
+            cancellationToken);
     }
 }

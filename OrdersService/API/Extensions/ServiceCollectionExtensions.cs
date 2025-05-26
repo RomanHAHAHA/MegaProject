@@ -1,0 +1,99 @@
+﻿using Common.API.Extensions;
+using Common.Application.Options;
+using Common.Application.Services;
+using Common.Domain.Interfaces;
+using FluentValidation;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using OrdersService.Application.Features.Orders.Create;
+using OrdersService.Application.Options;
+using OrdersService.Application.Services;
+using OrdersService.Domain.Interfaces;
+using OrdersService.Infrastructure.Messaging.Consumers;
+using OrdersService.Infrastructure.Persistence;
+using OrdersService.Infrastructure.Persistence.Repositories;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+
+namespace OrdersService.API.Extensions;
+
+public static class ServiceCollectionExtensions
+{
+    public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddScoped<IOrdersRepository, OrdersRepository>();
+        builder.Services.AddScoped<IProductRepository, ProductsRepository>();
+        builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+        
+        builder.Services.AddDbContext<OrdersDbContext>(options =>
+        {
+            options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL"));
+        });
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddApplicationServices(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+        builder.Services.AddFluentValidationAutoValidation();
+
+        builder.Services.AddHttpClient<ICartServiceClient, CartServiceClient>();
+        builder.Services.AddHttpClient<INovaPoshtaClient, NovaPoshtaClient>();
+
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<IHttpUserContext, HttpUserContext>();
+        builder.Services.AddApiAuthorization(builder.Configuration);
+
+        builder.Services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(CreateOrderCommandHandler).Assembly);
+        });
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddOptionsServices(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddConfiguredOptions<JwtOptions>(builder.Configuration);
+        builder.Services.AddConfiguredOptions<CustomCookieOptions>(builder.Configuration);
+        builder.Services.AddConfiguredOptions<NovaPoshtaOptions>(builder.Configuration);
+
+        return builder;
+    }
+
+    public static WebApplicationBuilder AddMessaging(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddMassTransit(bugConfigurator =>
+        {
+            bugConfigurator.AddConsumers(typeof(Program).Assembly);
+            bugConfigurator.SetKebabCaseEndpointNameFormatter();
+            
+            bugConfigurator.AddEntityFrameworkOutbox<OrdersDbContext>(options =>
+            {
+                options.DuplicateDetectionWindow = TimeSpan.FromSeconds(30);
+                options.QueryDelay = TimeSpan.FromSeconds(1);
+                options.UseSqlServer().UseBusOutbox();
+            });
+            
+            bugConfigurator.UsingRabbitMq((context, c) =>
+            {
+                c.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
+                {
+                    h.Username(builder.Configuration["MessageBroker:UserName"]!);
+                    h.Password(builder.Configuration["MessageBroker:Password"]!);
+                });
+                
+                c.ConfigureEndpoints(context);
+                
+                c.ReceiveEndpoint("orders-product-created", e => e.ConfigureConsumer<ProductCreatedConsumer>(context));
+                c.ReceiveEndpoint("orders-product-updated", e => e.ConfigureConsumer<ProductUpdatedConsumer>(context));
+                c.ReceiveEndpoint("orders-product-main-image-set", e => e.ConfigureConsumer<ProductMainImageSetConsumer>(context));
+                c.ReceiveEndpoint("orders-user-avatar-updated", e => e.ConfigureConsumer<UserAvatarUpdatedConsumer>(context));
+                c.ReceiveEndpoint("orders-user-registered", e => e.ConfigureConsumer<UserRegisteredConsumer>(context));
+                c.ReceiveEndpoint("orders-product-deleted", e => e.ConfigureConsumer<ProductDeletedConsumer>(context));
+            });
+        });
+
+        return builder;
+    }
+}

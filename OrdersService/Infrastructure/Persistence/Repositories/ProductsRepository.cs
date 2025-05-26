@@ -25,4 +25,13 @@ public class ProductsRepository(OrdersDbContext dbContext) : IProductRepository
 
     public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default) 
         => await dbContext.SaveChangesAsync(cancellationToken) > 0;
+
+    public async Task<List<ProductSnapshot>> GetWithIdsAsync(
+        List<Guid> ids,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Product
+            .Where(p => ids.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+    }
 }

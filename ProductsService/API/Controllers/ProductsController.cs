@@ -12,6 +12,7 @@ using ProductsService.Application.Features.Products.Create;
 using ProductsService.Application.Features.Products.Delete;
 using ProductsService.Application.Features.Products.GetPagedList;
 using ProductsService.Application.Features.Products.GetProductInfo;
+using ProductsService.Application.Features.Products.GetQuantity;
 using ProductsService.Application.Features.Products.Update;
 
 namespace ProductsService.API.Controllers;
@@ -85,6 +86,17 @@ public class ProductsController(IMediator mediator) : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new AddCategoryCommand(productId, categoryId);
+        var response = await mediator.Send(command, cancellationToken);
+        return this.HandleResponse(response);
+    }
+
+    [HttpGet("{productId:guid}/quantity")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetProductQuantityAsync(
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        var command = new GetQuantityQuery(productId);
         var response = await mediator.Send(command, cancellationToken);
         return this.HandleResponse(response);
     }

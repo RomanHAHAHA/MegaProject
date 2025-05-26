@@ -5,7 +5,6 @@ using Common.Infrastructure.Messaging.Events;
 using MassTransit;
 using MediatR;
 using OrdersService.Domain.Entities;
-using OrdersService.Domain.Enums;
 using OrdersService.Domain.Interfaces;
 
 namespace OrdersService.Application.Features.Orders.SetStatus;

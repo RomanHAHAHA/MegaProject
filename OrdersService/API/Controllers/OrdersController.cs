@@ -9,7 +9,6 @@ using OrdersService.Application.Features.Orders.Create;
 using OrdersService.Application.Features.Orders.GetUsersOrders;
 using OrdersService.Application.Features.Orders.SetStatus;
 using OrdersService.Domain.Dtos;
-using OrdersService.Domain.Enums;
 using OrdersService.Domain.Interfaces;
 
 namespace OrdersService.API.Controllers;

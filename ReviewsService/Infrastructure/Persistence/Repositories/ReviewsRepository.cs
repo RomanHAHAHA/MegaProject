@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ReviewsService.Domain.Dtos;
+using ReviewsService.Application.Features.Reviews.GetPendingReviews;
+using ReviewsService.Application.Features.Reviews.GetProductReviews;
 using ReviewsService.Domain.Entities;
 using ReviewsService.Domain.Enums;
 using ReviewsService.Domain.Interfaces;

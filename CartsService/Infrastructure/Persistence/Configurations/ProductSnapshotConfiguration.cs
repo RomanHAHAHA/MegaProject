@@ -1,5 +1,4 @@
-﻿using CartsService.Domain.Entities;
-using Common.Domain.Entities;
+﻿using Common.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -14,6 +13,7 @@ public class ProductSnapshotConfiguration : IEntityTypeConfiguration<ProductSnap
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(255).IsRequired();
         builder.Property(x => x.Price).IsRequired();
+        builder.Property(x => x.StockQuantity).IsRequired();
         builder.Property(x => x.MainImagePath).IsRequired();
     }
 }

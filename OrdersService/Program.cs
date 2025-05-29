@@ -1,4 +1,5 @@
 using OrdersService.API.Extensions;
+using OrdersService.API.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,11 @@ builder
     .AddApplicationServices()
     .AddOptionsServices();
 
+builder.Services.AddSignalR();
+
 var app = builder.Build();
+
+app.MapHub<OrdersHub>("orders-hub");
 
 if (app.Environment.IsDevelopment())
 {

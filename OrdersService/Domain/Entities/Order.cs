@@ -22,7 +22,7 @@ public class Order : Entity<Guid>
     public Order(Guid userId)
     {
         UserId = userId;
-        Status = OrderStatus.Created;
+        Status = OrderStatus.Processing;
     }
 
     public void AddDeliveryLocation(DeliveryLocationCreateDto deliveryLocation)

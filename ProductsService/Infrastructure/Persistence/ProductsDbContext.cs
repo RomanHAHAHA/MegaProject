@@ -11,6 +11,8 @@ public class ProductsDbContext(DbContextOptions<ProductsDbContext> options) : Db
     public DbSet<Category> Categories { get; set; }
     
     public DbSet<ProductImage> ProductImages { get; set; }
+
+    public DbSet<ProductCharacteristic> ProductCharacteristics { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

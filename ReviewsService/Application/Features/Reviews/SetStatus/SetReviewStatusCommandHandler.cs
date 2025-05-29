@@ -45,5 +45,9 @@ public class SetReviewStatusCommandHandler(
             ActionType = ActionType.Update,
             Message = $"Review of user {reviewUserId} on product {reviewProductId} status set: {request.Status}",
         }, cancellationToken);
+        
+        await publisher.Publish(
+            new ReviewStatusUpdatedEvent(reviewProductId), 
+            cancellationToken);
     }
 }

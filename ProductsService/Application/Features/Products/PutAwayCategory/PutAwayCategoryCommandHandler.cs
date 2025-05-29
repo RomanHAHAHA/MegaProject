@@ -19,7 +19,7 @@ public class PutAwayCategoryCommandHandler(
         CancellationToken cancellationToken)
     {
         var product = await productsRepository
-            .GetByIdWithCategories(request.ProductId, cancellationToken);
+            .GetByIdWithCategoriesAsync(request.ProductId, cancellationToken);
 
         if (product is null)
         {

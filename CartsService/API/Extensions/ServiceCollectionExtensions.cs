@@ -21,6 +21,8 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL"));
         });
 
+        builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
+        
         return builder;
     }
 

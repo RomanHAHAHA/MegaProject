@@ -5,6 +5,7 @@ using Common.Infrastructure.Messaging.Events;
 using MassTransit;
 using MediatR;
 using ProductsService.Application.Features.Categories.GetAll;
+using ProductsService.Domain.Dtos;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 
@@ -35,13 +36,16 @@ public class GetProductInfoQueryHandler(
             Name = product.Name,
             Description = product.Description,
             Price = product.Price,
-            IsAvailable = product.StockQuantity > 0,
+            StockQuantity = product.StockQuantity,
             Categories = product.Categories
                 .Select(c => new ShortCategoryDto(c.Id, c.Name))
                 .ToList(),
             Images = product.Images
                 .OrderByDescending(i => i.IsMain)
                 .Select(i => new ShortImageDto(i.Id, i.ImagePath))
+                .ToList(),
+            Characteristics = product.Characteristics
+                .Select(pc => new ProductCharacteristicDto(pc.Name, pc.Value))
                 .ToList()
         };
     }

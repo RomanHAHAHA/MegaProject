@@ -31,6 +31,8 @@ public static class ServiceCollectionExtensions
         builder.Services.AddTransient<IFilterStrategy<User, UsersFilter>, UsersFilterStrategy>();
         builder.Services.AddTransient<ISortStrategy<User>, UsersSortStrategy>();
 
+        builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
+        
         return builder;
     }
 

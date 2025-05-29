@@ -1,7 +1,6 @@
 ﻿using System.Security.Claims;
 using System.Text;
 using Common.Application.Options;
-using Common.Domain.Interfaces;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -45,7 +44,9 @@ public class JwtProvider(
         {
             new(CustomClaims.UserId, user.Id.ToString()),
             new(CustomClaims.NickName, user.NickName),
-            new(CustomClaims.Role, roleName ?? "Unknown")
+            new(CustomClaims.Role, roleName ?? "Unknown"),
+            new(CustomClaims.AvatarImageName, user.AvatarPath ?? string.Empty),
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString())
         };
 
         var permissions = await usersRepository.GetPermissionsAsync(user.Id, cancellationToken);

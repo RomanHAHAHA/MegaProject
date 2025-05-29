@@ -1,4 +1,5 @@
 ﻿using ProductsService.Application.Features.Categories.GetAll;
+using ProductsService.Domain.Dtos;
 
 namespace ProductsService.Application.Features.Products.GetProductInfo;
 
@@ -12,10 +13,11 @@ public class ProductInfoDto
     
     public decimal Price { get; set; }
     
-    public bool IsAvailable { get; set; }
+    public int StockQuantity { get; set; }
 
     public List<ShortImageDto> Images { get; set; } = [];
 
     public List<ShortCategoryDto> Categories { get; set; } = [];
 
+    public List<ProductCharacteristicDto> Characteristics { get; set; } = [];
 }

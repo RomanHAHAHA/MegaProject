@@ -4,9 +4,9 @@ namespace Common.Domain.Dtos;
 
 public class CartItemDto
 {
-    public Guid UserId { get; set; }
-
     public ProductSnapshot Product { get; set; } = null!;
 
     public int Quantity { get; set; }
+
+    public decimal TotalPrice => Product.Price * Quantity;
 }

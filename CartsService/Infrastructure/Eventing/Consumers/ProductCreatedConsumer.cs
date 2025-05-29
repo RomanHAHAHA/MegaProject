@@ -13,8 +13,7 @@ public class ProductCreatedConsumer(IMediator mediator) : IConsumer<ProductCreat
         var command = new CreateProductCommand(
             @event.Id,
             @event.Name,
-            @event.Price,
-            @event.StockQuantity);
+            @event.Price);
 
         await mediator.Send(command, context.CancellationToken);
     }

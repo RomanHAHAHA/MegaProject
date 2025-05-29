@@ -2,11 +2,12 @@
 
 public enum OrderStatus
 {
-    Created,
     Processing,
+    Reserved,
     Shipped,
     Delivered,
     Payed,
     Received,
     Canceled,
+    Failed
 }

@@ -14,7 +14,6 @@ public class ProductSnapshotConfiguration : IEntityTypeConfiguration<ProductSnap
         
         builder.Property(p => p.Name).HasMaxLength(255).IsRequired();
         builder.Property(p => p.Price).IsRequired();
-        builder.Property(p => p.StockQuantity).IsRequired();
         builder.Property(p => p.MainImagePath);
     }
 }

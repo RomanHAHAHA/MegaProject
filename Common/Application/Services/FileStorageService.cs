@@ -16,7 +16,8 @@ public class FileStorageService : IFileStorageService
             Directory.CreateDirectory(directory);
         }
 
-        var fullPath = Path.Combine(directory, $"{Guid.NewGuid()}_{file.FileName}");
+        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+        var fullPath = Path.Combine(directory, fileName);
 
         await using var outputStream = new FileStream(fullPath, FileMode.Create);
         await using var inputStream = file.OpenReadStream();
@@ -28,7 +29,7 @@ public class FileStorageService : IFileStorageService
 
         await inputStream.CopyToAsync(outputStream, cancellationToken);
 
-        return fullPath;
+        return fileName;
     }
 
     public async Task<Result> DeleteFileAsync(

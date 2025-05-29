@@ -36,6 +36,7 @@ public class ProductsRepository(ProductsDbContext dbContext) :
         return await AppDbContext.Products
             .AsNoTracking()
             .AsSplitQuery()
+            .Include(p => p.Characteristics)
             .Include(p => p.Categories)
             .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
@@ -50,12 +51,21 @@ public class ProductsRepository(ProductsDbContext dbContext) :
             .FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
     }
 
-    public async Task<Product?> GetByIdWithCategories(
+    public async Task<Product?> GetByIdWithCategoriesAsync(
         Guid productId, 
         CancellationToken cancellationToken = default)
     {
         return await AppDbContext.Products
             .Include(p => p.Categories)
+            .FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
+    }
+    
+    public async Task<Product?> GetByIdWithCharacteristicsAsync(
+        Guid productId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await AppDbContext.Products
+            .Include(p => p.Characteristics)
             .FirstOrDefaultAsync(p => p.Id == productId, cancellationToken);
     }
 
@@ -69,5 +79,14 @@ public class ProductsRepository(ProductsDbContext dbContext) :
             .FirstOrDefaultAsync(cancellationToken);
 
         return product?.StockQuantity;
+    }
+
+    public async Task<List<Product>> GetProductsByIdsAsync(
+        List<Guid> productIds, 
+        CancellationToken cancellationToken = default)
+    {
+        return await AppDbContext.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
     }
 }

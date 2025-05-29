@@ -13,8 +13,7 @@ public class ProductUpdatedConsumer(IMediator mediator) : IConsumer<ProductUpdat
         var command = new UpdateProductCommand(
             @event.Id,
             @event.Name,
-            @event.Price,
-            @event.StockQuantity);
+            @event.Price);
         
         await mediator.Send(command, context.CancellationToken);
     }

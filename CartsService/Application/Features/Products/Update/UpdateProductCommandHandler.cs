@@ -19,7 +19,6 @@ public class UpdateProductCommandHandler(
         
         product.Name = request.Name;
         product.Price = request.Price;
-        product.StockQuantity = request.StockQuantity;
         
         var updated  = await productRepository.SaveChangesAsync(cancellationToken);
         

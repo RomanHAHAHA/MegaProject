@@ -1,4 +1,5 @@
-﻿using CartsService.Application.Features.CartItems.Create;
+﻿using System.Net;
+using CartsService.Application.Features.CartItems.Create;
 using CartsService.Application.Features.CartItems.Decrement;
 using CartsService.Application.Features.CartItems.Delete;
 using CartsService.Application.Features.CartItems.GetUserCart;
@@ -20,8 +21,17 @@ public class CartsController(IMediator mediator) : ControllerBase
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var command = new AddProductToCartCommand(User.GetId(), productId);
-        var response = await mediator.Send(command, cancellationToken);
+        var userId = User.GetId();
+        
+        var addProductToCartCommand = new AddProductToCartCommand(userId, productId);
+        var response = await mediator.Send(addProductToCartCommand, cancellationToken);
+
+        if (response.Status == HttpStatusCode.Conflict)
+        {
+            var incrementProductCommand = new IncrementItemQuantityCommand(userId, productId);
+            response = await mediator.Send(incrementProductCommand, cancellationToken);
+        }
+        
         return this.HandleResponse(response);
     }
 
@@ -57,19 +67,19 @@ public class CartsController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> DecrementProductCountAsync(
         Guid productId,
         CancellationToken cancellationToken)
-    {
-        var command = new DecrementItemQuantityCommand(User.GetId(), productId);
-        var response = await mediator.Send(command, cancellationToken);
-        return this.HandleResponse(response);
-    }
-    
-    [HttpDelete("{productId:guid}")]
-    public async Task<IActionResult> DeleteItemFromCartAsync(
-        Guid productId,
-        CancellationToken cancellationToken)
-    {
-        var command = new DeleteItemCommand(User.GetId(), productId);
-        var response = await mediator.Send(command, cancellationToken);
-        return this.HandleResponse(response);
-    }
-}
+     {
+         var command = new DecrementItemQuantityCommand(User.GetId(), productId);
+         var response = await mediator.Send(command, cancellationToken);
+         return this.HandleResponse(response);
+     }
+     
+     [HttpDelete("{productId:guid}")]
+     public async Task<IActionResult> DeleteItemFromCartAsync(
+         Guid productId,
+         CancellationToken cancellationToken)
+     {
+         var command = new DeleteItemCommand(User.GetId(), productId);
+         var response = await mediator.Send(command, cancellationToken);
+         return this.HandleResponse(response);
+     }
+ }

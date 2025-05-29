@@ -1,8 +1,6 @@
 ﻿using CartsService.Domain.Entities;
 using CartsService.Domain.Interfaces;
-using Common.Domain.Enums;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
 using MediatR;
 
 namespace CartsService.Application.Features.CartItems.Increment;

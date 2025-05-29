@@ -22,4 +22,8 @@ public interface IReviewsRepository
         CancellationToken cancellationToken = default);
 
     Task<List<PendingReviewDto>> GetPendingReviewsAsync(CancellationToken cancellationToken = default);
+
+    Task<double> GetAverageProductRatingAsync(
+        Guid productId,
+        CancellationToken cancellationToken = default);
 }

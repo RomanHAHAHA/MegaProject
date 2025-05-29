@@ -30,8 +30,18 @@ public class ReviewsRepository(ReviewsDbContext dbContext) : IReviewsRepository
     public void Delete(Review review) => dbContext.Reviews.Remove(review);
     
     public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
-        => await dbContext.SaveChangesAsync(cancellationToken) > 0; 
+        => await dbContext.SaveChangesAsync(cancellationToken) > 0;
 
+    public async Task<double> GetAverageProductRatingAsync(
+        Guid productId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.Reviews
+            .Where(r => r.ProductId == productId && r.Status == ReviewStatus.Approved)
+            .Select(r => r.Rate)
+            .AverageAsync(cancellationToken);
+    }  
+    
     public async Task<List<ProductReviewDto>> GetProductReviewsAsync(
         Guid productId,
         CancellationToken cancellationToken = default)

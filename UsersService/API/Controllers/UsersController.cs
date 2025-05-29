@@ -1,5 +1,6 @@
 ﻿using Common.API.Authentication;
 using Common.API.Extensions;
+using Common.Application.Options;
 using Common.Domain.Dtos;
 using Common.Domain.Enums;
 using Common.Domain.Models.Results;
@@ -10,6 +11,7 @@ using UsersService.Application.Features.Users.GetById;
 using UsersService.Application.Features.Users.GetPagedList;
 using UsersService.Application.Features.Users.SetAvatarImage;
 using UsersService.Application.Features.Users.UpdatePassword;
+using UsersService.Domain.Dtos;
 using UsersService.Domain.Entities;
 
 namespace UsersService.API.Controllers;
@@ -64,5 +66,21 @@ public class UsersController(IMediator mediator) : ControllerBase
         var command = new UpdatePasswordCommand(User.GetId(), updatePasswordDto);
         var response = await mediator.Send(command, cancellationToken);
         return this.HandleResponse(response);
+    }
+    
+    [Authorize]
+    [HttpGet("get-claims")]
+    public IActionResult GetUserClaimsData()
+    {
+        var userCookiesData = new UserCookieDataDto
+        {
+            UserId = User.FindFirst(CustomClaims.UserId)!.Value,
+            NickName = User.FindFirst(CustomClaims.NickName)!.Value,
+            AvatarImageName = User.FindFirst(CustomClaims.AvatarImageName)!.Value,
+            Role = User.FindFirst(CustomClaims.Role)!.Value,
+            Permissions = User.FindAll(CustomClaims.Permissions).Select(c => c.Value).ToList()
+        };
+
+        return Ok(new { userCookiesData });
     }
 }

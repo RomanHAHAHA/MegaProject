@@ -22,11 +22,19 @@ public interface IProductsRepository : IRepository<Product, Guid>
         Guid productId,
         CancellationToken cancellationToken = default);
     
-    Task<Product?> GetByIdWithCategories(
+    Task<Product?> GetByIdWithCategoriesAsync(
+        Guid productId,
+        CancellationToken cancellationToken = default);
+
+    Task<Product?> GetByIdWithCharacteristicsAsync(
         Guid productId,
         CancellationToken cancellationToken = default);
 
     Task<int?> GetQuantityById(
         Guid productId,
+        CancellationToken cancellationToken = default);
+    
+    Task<List<Product>> GetProductsByIdsAsync(
+        List<Guid> productIds,
         CancellationToken cancellationToken = default);
 }

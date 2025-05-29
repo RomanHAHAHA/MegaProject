@@ -4,6 +4,7 @@ using Common.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ReviewsService.Application.Features.Products.GetRatingQuery;
 using ReviewsService.Application.Features.Reviews.Create;
 using ReviewsService.Application.Features.Reviews.GetPendingReviews;
 using ReviewsService.Application.Features.Reviews.GetProductReviews;
@@ -73,6 +74,16 @@ public class ReviewsController(
     {
         var query = new GetProductReviewsQuery(productId);
         return await mediator.Send(query, cancellationToken);
+    }
+
+    [HttpGet("product/{productId:guid}/rating")]
+    public async Task<IActionResult> GetProductRatingAsync(
+        Guid productId,
+        CancellationToken cancellationToken)
+    {
+        var query = new GetProductRatingQuery(productId);
+        var rating = await mediator.Send(query, cancellationToken);
+        return Ok(new { data = rating });
     }
 
     [HttpGet("pending")]

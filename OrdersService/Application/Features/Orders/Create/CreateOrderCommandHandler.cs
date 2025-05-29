@@ -16,9 +16,7 @@ public class CreateOrderCommandHandler(
     OrdersDbContext dbContext,
     IPublishEndpoint publishEndpoint) : IRequestHandler<CreateOrderCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        CreateOrderCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
         if (request.CartItems.Count == 0)
         {
@@ -67,6 +65,8 @@ public class CreateOrderCommandHandler(
             Message = $"Order {order.Id} created"
         }, cancellationToken);
         
-        await publishEndpoint.Publish(new OrderCreatedEvent(order.UserId, cartItems), cancellationToken);
+        await publishEndpoint.Publish(
+            new OrderCreatedEvent(order.UserId, order.Id, cartItems), 
+            cancellationToken);
     }
 }

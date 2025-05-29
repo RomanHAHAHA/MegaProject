@@ -9,8 +9,10 @@ using Microsoft.EntityFrameworkCore;
 using ProductsService.Application.Features.ProductImages.Create;
 using ProductsService.Application.Features.Products.Create;
 using ProductsService.Application.Features.Products.GetPagedList;
+using ProductsService.Application.Services;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
+using ProductsService.Infrastructure.Messaging.Consumers;
 using ProductsService.Infrastructure.Persistence;
 using ProductsService.Infrastructure.Persistence.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
@@ -26,14 +28,16 @@ public static class ServiceCollectionExtensions
         builder.Services.AddScoped<ISortStrategy<Product>, ProductSortStrategy>();
 
         builder.Services.AddScoped<ICategoriesRepository, CategoriesRepository>();
-
         builder.Services.AddScoped<IProductImagesRepository, ProductImagesRepository>();
+        builder.Services.AddScoped<IProductCharacteristicsRepository, ProductCharacteristicsRepository>();
 
         builder.Services.AddDbContext<ProductsDbContext>(options =>
         {
             options.UseSqlServer(builder.Configuration.GetConnectionString("MSSQL"));
         });
 
+        builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None);
+        
         return builder;
     }
 
@@ -49,6 +53,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddTransient<IFileStorageService, FileStorageService>();
         
         builder.Services.AddSingleton<GlobalExceptionHandlingMiddleware>();
+        builder.Services.AddHttpClient<IReviewsClient, ReviewsClient>();
         
         builder.Services.AddMediatR(cfg =>
         {
@@ -71,6 +76,8 @@ public static class ServiceCollectionExtensions
     {
         builder.Services.AddMassTransit(bugConfigurator =>
         {
+            bugConfigurator.AddConsumers(typeof(Program).Assembly);
+            
             bugConfigurator.AddEntityFrameworkOutbox<ProductsDbContext>(options =>
             {
                 options.QueryDelay = TimeSpan.FromSeconds(1);

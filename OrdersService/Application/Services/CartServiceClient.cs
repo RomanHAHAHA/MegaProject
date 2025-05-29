@@ -11,36 +11,39 @@ public class CartServiceClient(
     IHttpUserContext httpContext) : ICartServiceClient
 {
     public async Task<IReadOnlyList<CartItemDto>> GetCartItemsAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken)
     {
-        var accessToken = httpContext.AccessToken; 
+        var accessToken = httpContext.AccessToken;
 
         if (string.IsNullOrEmpty(accessToken))
         {
             return [];
         }
 
-        httpClient.DefaultRequestHeaders.Authorization = 
+        httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", accessToken);
-        
+
         var response = await httpClient.GetAsync(
-            $"https://localhost:7059/api/carts/{userId}", 
+            $"https://localhost:7059/api/carts/{userId}",
             cancellationToken);
-        
+
         response.EnsureSuccessStatusCode();
 
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
-        
-        var wrapper = JsonSerializer.Deserialize<DataWrapper<IReadOnlyList<CartItemDto>>>(
+
+        var wrapper = JsonSerializer.Deserialize<DataWrapper<CartDto>>(
             json,
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-        return wrapper?.Data ?? [];
+        return wrapper?.Data.CartItems ?? [];
     }
 }
 
-public class DataWrapper<T>
+public class CartDto
 {
-    public T Data { get; set; } = default!;
+    public Guid UserId { get; set; }
+    public IReadOnlyList<CartItemDto> CartItems { get; set; } = [];
+    
+    public decimal TotalCartPrice { get; set; }
 }

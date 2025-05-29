@@ -1,4 +1,6 @@
+using Microsoft.Extensions.FileProviders;
 using ProductsService.API.Extensions;
+using ProductsService.Application.Features.ProductImages.Create;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var options = builder.Configuration
+    .GetSection(nameof(ProductImagesOptions))
+    .Get<ProductImagesOptions>()!;
+
+if (!Directory.Exists(options.Path))
+{
+    Directory.CreateDirectory(options.Path);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(options.Path),
+    RequestPath = "/product-images"
+});
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

@@ -3,4 +3,4 @@ using Common.Domain.Dtos;
 
 namespace Common.Infrastructure.Messaging.Events;
 
-public record OrderCreatedEvent(Guid UserId, List<CartItemDto> CartItems) : BaseEvent;
+public record OrderCreatedEvent(Guid UserId, Guid OrderId, List<CartItemDto> CartItems) : BaseEvent;

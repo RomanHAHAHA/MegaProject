@@ -1,46 +1,27 @@
-import { useEffect, useState } from 'react';
-import './App.css';
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Menu from "./components/Menu";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Products from "./pages/Products";
+import Profile from "./pages/Profile";
+import CreateProductForm from "./forms/CreateProductForm";
 
 function App() {
-  const [data, setData] = useState('');
-  const [signature, setSignature] = useState('');
-
-  useEffect(() => {
-    fetch('https://localhost:7146/api/payments/create', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: 100,
-        currency: 'UAH',
-        description: 'Оплата товару',
-        orderId: 'ORDER123',
-        resultUrl: 'https://localhost:3000/payment-success'
-      })
-    })
-      .then(res => res.json())
-      .then(res => {
-        setData(res.data);
-        setSignature(res.signature);
-      });
-  }, []);
-
   return (
-    <div className="App">
-      <h1>Оплата через LiqPay</h1>
-      {data && signature ? (
-        <form
-          method="POST"
-          action="https://www.liqpay.ua/api/3/checkout"
-          acceptCharset="utf-8"
-        >
-          <input type="hidden" name="data" value={data} />
-          <input type="hidden" name="signature" value={signature} />
-          <button type="submit">Перейти до оплати</button>
-        </form>
-      ) : (
-        <p>Завантаження даних платежу...</p>
-      )}
-    </div>
+    <Router>
+        <div>
+          <Menu />
+          <div className="container mt-5 pt-4">
+            <Routes>
+              <Route path="/" element={<Products />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/create-product" element={<CreateProductForm />} />
+            </Routes>
+          </div>
+        </div>
+      </Router>
   );
 }
 

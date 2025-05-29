@@ -35,3 +35,4 @@ D:\Rider\Projects\OLXKiller\APIGateway\obj\Debug\net9.0\refint\APIGateway.dll
 D:\Rider\Projects\OLXKiller\APIGateway\obj\Debug\net9.0\APIGateway.pdb
 D:\Rider\Projects\OLXKiller\APIGateway\obj\Debug\net9.0\APIGateway.genruntimeconfig.cache
 D:\Rider\Projects\OLXKiller\APIGateway\obj\Debug\net9.0\ref\APIGateway.dll
+D:\Rider\Projects\OLXKiller\APIGateway\obj\Debug\net9.0\APIGateway.sourcelink.json

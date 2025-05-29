@@ -19,6 +19,8 @@ public sealed class Product : Entity<Guid>
 
     public List<ProductImage> Images { get; set; } = [];
 
+    public List<ProductCharacteristic> Characteristics { get; set; } = [];
+    
     public static Product FromCreateDto(ProductCreateDto createDto)
     {
         return new Product

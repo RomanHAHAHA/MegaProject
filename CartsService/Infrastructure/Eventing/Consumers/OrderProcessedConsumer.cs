@@ -5,9 +5,9 @@ using MediatR;
 
 namespace CartsService.Infrastructure.Eventing.Consumers;
 
-public class OrderCreatedConsumer(IMediator mediator) : IConsumer<OrderCreatedEvent>
+public class OrderProcessedConsumer(IMediator mediator) : IConsumer<OrderProcessedEvent>
 {
-    public async Task Consume(ConsumeContext<OrderCreatedEvent> context)
+    public async Task Consume(ConsumeContext<OrderProcessedEvent> context)
     {
         var @event = context.Message;
         var command = new CleanCartCommand(@event.UserId);

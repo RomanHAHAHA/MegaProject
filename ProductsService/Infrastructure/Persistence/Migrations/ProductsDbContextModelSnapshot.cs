@@ -270,6 +270,25 @@ namespace ProductsService.Migrations
                     b.ToTable("Products", "products");
                 });
 
+            modelBuilder.Entity("ProductsService.Domain.Entities.ProductCharacteristics", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("ProductId", "Name");
+
+                    b.ToTable("ProductCharacteristics", "products");
+                });
+
             modelBuilder.Entity("ProductsService.Domain.Entities.ProductImage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -323,6 +342,17 @@ namespace ProductsService.Migrations
                         .HasPrincipalKey("MessageId", "ConsumerId");
                 });
 
+            modelBuilder.Entity("ProductsService.Domain.Entities.ProductCharacteristics", b =>
+                {
+                    b.HasOne("ProductsService.Domain.Entities.Product", "Product")
+                        .WithMany("Characteristics")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("ProductsService.Domain.Entities.ProductImage", b =>
                 {
                     b.HasOne("ProductsService.Domain.Entities.Product", "Product")
@@ -336,6 +366,8 @@ namespace ProductsService.Migrations
 
             modelBuilder.Entity("ProductsService.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("Characteristics");
+
                     b.Navigation("Images");
                 });
 #pragma warning restore 612, 618

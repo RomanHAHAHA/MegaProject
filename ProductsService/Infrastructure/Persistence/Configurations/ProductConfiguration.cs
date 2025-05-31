@@ -1,5 +1,4 @@
-﻿using Common.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ProductsService.Domain.Entities;
 
@@ -12,6 +11,8 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.ToTable("Products");
         
         builder.HasKey(p => p.Id);
+        
+        builder.Property(p => p.UserId);
         
         builder.Property(p => p.Name)
             .HasMaxLength(255)
@@ -31,10 +32,14 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         
         builder.Property(p => p.CreatedAt).IsRequired();
 
-        builder.HasMany(x => x.Categories).WithMany(x => x.Products);
+        builder.HasMany(p => p.Categories).WithMany(x => x.Products);
         
-        builder.HasMany(x => x.Images)
-            .WithOne(x => x.Product)
-            .HasForeignKey(x => x.ProductId);
+        builder.HasMany(p => p.Images)
+            .WithOne(p => p.Product)
+            .HasForeignKey(p => p.ProductId);
+        
+        builder.HasOne(p => p.User)
+            .WithMany(x => x.Products)
+            .HasForeignKey(x => x.UserId);
     }
 }

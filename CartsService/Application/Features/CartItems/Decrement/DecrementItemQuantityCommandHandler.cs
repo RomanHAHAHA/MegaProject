@@ -22,6 +22,7 @@ public class DecrementItemQuantityCommandHandler(
             return BaseResponse.NotFound(nameof(CartItem));
         }
         
+        //TODO: logic if quantity is 0
         cartItem.Quantity--;
         var updated = await cartsRepository.SaveChangesAsync(cancellationToken);
         

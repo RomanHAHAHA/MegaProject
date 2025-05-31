@@ -2,6 +2,7 @@
 using Common.API.Extensions;
 using Common.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductsService.Application.Features.ProductImages.Create;
 using ProductsService.Application.Features.ProductImages.Delete;
@@ -14,7 +15,7 @@ namespace ProductsService.API.Controllers;
 public class ProductImagesController(IMediator mediator) : ControllerBase
 {
     [HttpPost("{productId:guid}")]
-    [HasPermission(PermissionEnum.ManageProductImages)]
+    [Authorize]
     public async Task<IActionResult> AddImagesAsync(
         [FromForm] List<IFormFile> images,
         Guid productId,
@@ -26,7 +27,7 @@ public class ProductImagesController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{productImageId:guid}")]
-    [HasPermission(PermissionEnum.ManageProductImages)]
+    [Authorize]
     public async Task<IActionResult> DeleteImageAsync(
         Guid productImageId,
         CancellationToken cancellationToken)
@@ -37,7 +38,7 @@ public class ProductImagesController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("{imageId:guid}")]
-    [HasPermission(PermissionEnum.ManageProductImages)]
+    [Authorize]
     public async Task<IActionResult> SetMainImageAsync(
         Guid imageId,
         CancellationToken cancellationToken)

@@ -44,7 +44,7 @@ public class OrdersController(
     }
 
     [HttpPatch("{orderId:guid}/{status}")]
-    [HasPermission(PermissionEnum.ManageOrders)]
+    [Authorize]
     public async Task<IActionResult> SetOrderStatusAsync(
         Guid orderId,
         OrderStatus status,

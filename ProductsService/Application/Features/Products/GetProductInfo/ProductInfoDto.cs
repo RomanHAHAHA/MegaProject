@@ -15,6 +15,8 @@ public class ProductInfoDto
     
     public int StockQuantity { get; set; }
 
+    public ProductSellerDto Seller { get; set; } = null!;
+
     public List<ShortImageDto> Images { get; set; } = [];
 
     public List<ShortCategoryDto> Categories { get; set; } = [];

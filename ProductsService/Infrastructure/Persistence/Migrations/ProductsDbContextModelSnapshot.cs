@@ -265,12 +265,17 @@ namespace ProductsService.Migrations
                     b.Property<int>("StockQuantity")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Products", "products");
                 });
 
-            modelBuilder.Entity("ProductsService.Domain.Entities.ProductCharacteristics", b =>
+            modelBuilder.Entity("ProductsService.Domain.Entities.ProductCharacteristic", b =>
                 {
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
@@ -315,6 +320,33 @@ namespace ProductsService.Migrations
                     b.ToTable("ProductImages", "products");
                 });
 
+            modelBuilder.Entity("ProductsService.Domain.Entities.UserSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AvatarImageName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NickName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Rating")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("float")
+                        .HasDefaultValue(0.0);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserSnapshots", "products");
+                });
+
             modelBuilder.Entity("CategoryProduct", b =>
                 {
                     b.HasOne("ProductsService.Domain.Entities.Category", null)
@@ -342,7 +374,18 @@ namespace ProductsService.Migrations
                         .HasPrincipalKey("MessageId", "ConsumerId");
                 });
 
-            modelBuilder.Entity("ProductsService.Domain.Entities.ProductCharacteristics", b =>
+            modelBuilder.Entity("ProductsService.Domain.Entities.Product", b =>
+                {
+                    b.HasOne("ProductsService.Domain.Entities.UserSnapshot", "User")
+                        .WithMany("Products")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ProductsService.Domain.Entities.ProductCharacteristic", b =>
                 {
                     b.HasOne("ProductsService.Domain.Entities.Product", "Product")
                         .WithMany("Characteristics")
@@ -369,6 +412,11 @@ namespace ProductsService.Migrations
                     b.Navigation("Characteristics");
 
                     b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("ProductsService.Domain.Entities.UserSnapshot", b =>
+                {
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

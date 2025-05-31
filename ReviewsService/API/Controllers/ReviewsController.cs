@@ -54,7 +54,7 @@ public class ReviewsController(
     }
 
     [HttpPatch("status/{status}")]
-    [HasPermission(PermissionEnum.ManageReviews)]
+    [Authorize]
     public async Task<IActionResult> SetReviewStatusAsync(
         Guid userId,
         Guid productId,
@@ -87,7 +87,7 @@ public class ReviewsController(
     }
 
     [HttpGet("pending")]
-    [HasPermission(PermissionEnum.ManageReviews)]
+    [Authorize]
     public async Task<List<PendingReviewDto>> GetPendingReviewsAsync(
         CancellationToken cancellationToken)
     {

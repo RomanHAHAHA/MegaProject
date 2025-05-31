@@ -21,7 +21,7 @@ namespace UsersService.API.Controllers;
 public class UsersController(IMediator mediator) : ControllerBase
 { 
     [HttpGet]
-    [HasPermission(PermissionEnum.ViewUsers)]
+    [Authorize]
     public async Task<PagedList<User>> GetPagedUsersListAsync(
         [FromQuery] UsersFilter usersFilter,
         [FromQuery] SortParams sortParams,
@@ -37,7 +37,7 @@ public class UsersController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{userId:guid}")]
-    [HasPermission(PermissionEnum.ViewUsers)]
+    [Authorize]
     public async Task<IActionResult> GetUserByIdAsync(
         Guid userId,
         CancellationToken cancellationToken)

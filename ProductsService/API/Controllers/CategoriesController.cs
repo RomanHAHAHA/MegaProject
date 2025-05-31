@@ -17,7 +17,7 @@ namespace ProductsService.API.Controllers;
 public class CategoriesController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    [HasPermission(PermissionEnum.ManageCategories)]
+    [Authorize]
     public async Task<IActionResult> CreateCategoryAsync(
         [FromBody] CategoryCreateDto categoryCreateDto,
         CancellationToken cancellationToken)
@@ -35,7 +35,7 @@ public class CategoriesController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("{categoryId:guid}")]
-    [HasPermission(PermissionEnum.ManageCategories)]
+    [Authorize]
     public async Task<IActionResult> UpdateCategoryAsync(
         Guid categoryId,
         [FromBody] CategoryCreateDto categoryCreateDto,
@@ -47,7 +47,7 @@ public class CategoriesController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{categoryId:guid}")]
-    [HasPermission(PermissionEnum.ManageCategories)]
+    [Authorize]
     public async Task<IActionResult> DeleteCategoryAsync(
         Guid categoryId,
         CancellationToken cancellationToken)

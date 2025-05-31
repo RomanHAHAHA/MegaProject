@@ -1,7 +1,5 @@
-﻿using Common.API.Authentication;
-using Common.API.Extensions;
+﻿using Common.API.Extensions;
 using Common.Domain.Dtos;
-using Common.Domain.Enums;
 using Common.Domain.Models.Results;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -22,12 +20,12 @@ namespace ProductsService.API.Controllers;
 public class ProductsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    [HasPermission(PermissionEnum.ManageProducts)]
+    [Authorize]
     public async Task<IActionResult> CreateProductAsync(
         [FromBody] ProductCreateDto productCreateDto,
         CancellationToken cancellationToken)
     {
-        var command = new CreateProductCommand(productCreateDto);
+        var command = new CreateProductCommand(productCreateDto, User.GetId());
         var response = await mediator.Send(command, cancellationToken);
         return this.HandleResponse(response);
     }
@@ -40,6 +38,13 @@ public class ProductsController(IMediator mediator) : ControllerBase
         [FromQuery] PageParams pageParams,
         CancellationToken cancellationToken)
     {
+        var userId = User.GetId();
+
+        if (userId != Guid.Empty)
+        {
+            productFilter.UserId = userId;
+        }
+        
         var command = new GetProductsQuery(productFilter, sortParams, pageParams);
         return await mediator.Send(command, cancellationToken);
     }
@@ -56,7 +61,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{productId:guid}")]
-    [HasPermission(PermissionEnum.ManageProducts)]
+    [Authorize]
     public async Task<IActionResult> UpdateProductAsync(
         Guid productId,
         [FromBody] ProductCreateDto productCreateDto,
@@ -68,7 +73,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{productId:guid}")]
-    [HasPermission(PermissionEnum.ManageProducts)]
+    [Authorize]
     public async Task<IActionResult> DeleteProductAsync(
         Guid productId,
         CancellationToken cancellationToken)
@@ -79,7 +84,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{productId:guid}/categories/{categoryId:guid}")]
-    [HasPermission(PermissionEnum.ManageProducts)]
+    [Authorize]
     public async Task<IActionResult> AddCategoryAsync(
         Guid productId,
         Guid categoryId,

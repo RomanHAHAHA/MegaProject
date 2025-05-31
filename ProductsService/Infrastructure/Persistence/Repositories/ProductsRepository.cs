@@ -36,6 +36,7 @@ public class ProductsRepository(ProductsDbContext dbContext) :
         return await AppDbContext.Products
             .AsNoTracking()
             .AsSplitQuery()
+            .Include(p => p.User)
             .Include(p => p.Characteristics)
             .Include(p => p.Categories)
             .Include(p => p.Images)

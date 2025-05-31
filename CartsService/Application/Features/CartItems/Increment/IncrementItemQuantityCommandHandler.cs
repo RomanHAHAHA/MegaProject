@@ -23,6 +23,7 @@ public class IncrementItemQuantityCommandHandler(
         }
         
         cartItem.Quantity++;
+        //TODO: notification
         var updated = await cartsRepository.SaveChangesAsync(cancellationToken);
         
         return updated ? 

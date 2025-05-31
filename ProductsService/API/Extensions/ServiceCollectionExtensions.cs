@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddScoped<ICategoriesRepository, CategoriesRepository>();
         builder.Services.AddScoped<IProductImagesRepository, ProductImagesRepository>();
         builder.Services.AddScoped<IProductCharacteristicsRepository, ProductCharacteristicsRepository>();
+        builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 
         builder.Services.AddDbContext<ProductsDbContext>(options =>
         {
@@ -85,15 +86,18 @@ public static class ServiceCollectionExtensions
             });
     
             bugConfigurator.SetKebabCaseEndpointNameFormatter();
-            bugConfigurator.UsingRabbitMq((context, configurator) =>
+            bugConfigurator.UsingRabbitMq((context, c) =>
             {
-                configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
+                c.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
                 {
                     h.Username(builder.Configuration["MessageBroker:UserName"]!);
                     h.Password(builder.Configuration["MessageBroker:Password"]!);
                 });
         
-                configurator.ConfigureEndpoints(context);
+                c.ReceiveEndpoint("products-user-avatar-updated", e => e.ConfigureConsumer<UserAvatarUpdatedConsumer>(context));
+                c.ReceiveEndpoint("products-user-registered", e => e.ConfigureConsumer<UserRegisteredConsumer>(context));
+                
+                c.ConfigureEndpoints(context);
             });
         });
 

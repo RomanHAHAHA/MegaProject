@@ -53,7 +53,7 @@ public class RegisterUserCommandHandler(
             }, cancellationToken); 
         
         await publishEndpoint.Publish(
-            new UserRegisteredEvent(user.Id, user.NickName, user.Email), 
+            new UserRegisteredEvent(user.Id, user.NickName, user.Email, user.CreatedAt), 
             cancellationToken);
     }
 }

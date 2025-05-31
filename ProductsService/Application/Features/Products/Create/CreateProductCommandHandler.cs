@@ -16,7 +16,7 @@ public class CreateProductCommandHandler(
 {
     public async Task<BaseResponse<Guid>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = Product.FromCreateDto(request.ProductCreateDto);
+        var product = Product.FromCreateDto(request.ProductCreateDto, request.UserId);
         
         await productsRepository.CreateAsync(product, cancellationToken);
         await OnProductCreated(product, cancellationToken);

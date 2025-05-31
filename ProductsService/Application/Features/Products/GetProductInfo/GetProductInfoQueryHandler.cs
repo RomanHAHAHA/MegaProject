@@ -37,6 +37,7 @@ public class GetProductInfoQueryHandler(
             Description = product.Description,
             Price = product.Price,
             StockQuantity = product.StockQuantity,
+            Seller = new ProductSellerDto(product),
             Categories = product.Categories
                 .Select(c => new ShortCategoryDto(c.Id, c.Name))
                 .ToList(),

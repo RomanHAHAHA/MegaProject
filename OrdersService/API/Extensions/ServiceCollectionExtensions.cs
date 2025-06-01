@@ -1,4 +1,5 @@
 ﻿using Common.API.Extensions;
+using Common.API.Filters;
 using Common.Application.Options;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
@@ -13,6 +14,7 @@ using OrdersService.Infrastructure.Messaging.Consumers;
 using OrdersService.Infrastructure.Persistence;
 using OrdersService.Infrastructure.Persistence.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+using StackExchange.Redis;
 
 namespace OrdersService.API.Extensions;
 
@@ -50,6 +52,11 @@ public static class ServiceCollectionExtensions
         {
             cfg.RegisterServicesFromAssembly(typeof(CreateOrderCommandHandler).Assembly);
         });
+        
+        builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+        builder.Services.AddScoped(typeof(ICacheService<>), typeof(CacheService<>));
 
         return builder;
     }
@@ -59,12 +66,15 @@ public static class ServiceCollectionExtensions
         builder.Services.AddConfiguredOptions<JwtOptions>(builder.Configuration);
         builder.Services.AddConfiguredOptions<CustomCookieOptions>(builder.Configuration);
         builder.Services.AddConfiguredOptions<NovaPoshtaOptions>(builder.Configuration);
+        builder.Services.AddConfiguredOptions<ServiceOptions>(builder.Configuration);
 
         return builder;
     }
 
     public static WebApplicationBuilder AddMessaging(this WebApplicationBuilder builder)
     {
+        builder.Services.AddScoped(typeof(IdempotencyFilter<>));
+        
         builder.Services.AddMassTransit(bugConfigurator =>
         {
             bugConfigurator.AddConsumers(typeof(Program).Assembly);
@@ -79,6 +89,8 @@ public static class ServiceCollectionExtensions
             
             bugConfigurator.UsingRabbitMq((context, c) =>
             {
+                c.UseConsumeFilter(typeof(IdempotencyFilter<>), context);
+                
                 c.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
                 {
                     h.Username(builder.Configuration["MessageBroker:UserName"]!);
@@ -95,7 +107,7 @@ public static class ServiceCollectionExtensions
                 c.ReceiveEndpoint("orders-product-deleted", e => e.ConfigureConsumer<ProductDeletedConsumer>(context));
             });
         });
-
+        
         return builder;
     }
 }

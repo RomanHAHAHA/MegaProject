@@ -11,7 +11,9 @@ public class ProductCreatedConsumer(IMediator mediator) : IConsumer<ProductCreat
     {
         var @event = context.Message;
         var command = new CreateProductCommand(
-            @event.Id,
+            @event.CorrelationId,
+            @event.CorrelationId,
+            @event.SellerId,
             @event.Name,
             @event.Price);
         

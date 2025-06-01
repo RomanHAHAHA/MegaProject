@@ -3,9 +3,13 @@ using CartsService.Infrastructure.Eventing.Consumers;
 using CartsService.Infrastructure.Persistence;
 using CartsService.Infrastructure.Persistence.Repositories;
 using Common.API.Extensions;
+using Common.API.Filters;
 using Common.Application.Options;
+using Common.Application.Services;
+using Common.Domain.Interfaces;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace CartsService.API.Extensions;
 
@@ -28,6 +32,11 @@ public static class ServiceCollectionExtensions
 
     public static WebApplicationBuilder AddApplicationServices(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+        builder.Services.AddScoped(typeof(ICacheService<>), typeof(CacheService<>));
+        
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
@@ -42,16 +51,19 @@ public static class ServiceCollectionExtensions
     {
         builder.Services.AddConfiguredOptions<JwtOptions>(builder.Configuration);
         builder.Services.AddConfiguredOptions<CustomCookieOptions>(builder.Configuration);
+        builder.Services.AddConfiguredOptions<ServiceOptions>(builder.Configuration);
 
         return builder;
     }
 
     public static WebApplicationBuilder AddMessaging(this WebApplicationBuilder builder)
     {
+        builder.Services.AddScoped(typeof(IdempotencyFilter<>));
+        
         builder.Services.AddMassTransit(bugConfigurator =>
         {
-            bugConfigurator.SetKebabCaseEndpointNameFormatter();
             bugConfigurator.AddConsumers(typeof(Program).Assembly);
+            bugConfigurator.SetKebabCaseEndpointNameFormatter();
     
             bugConfigurator.AddEntityFrameworkOutbox<CartsDbContext>(options =>
             {
@@ -61,6 +73,8 @@ public static class ServiceCollectionExtensions
     
             bugConfigurator.UsingRabbitMq((context, c) =>
             {
+                c.UseConsumeFilter(typeof(IdempotencyFilter<>), context);
+                
                 c.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
                 {
                     h.Username(builder.Configuration["MessageBroker:UserName"]!);
@@ -74,7 +88,7 @@ public static class ServiceCollectionExtensions
                 c.ReceiveEndpoint("carts-product-deleted", e => e.ConfigureConsumer<ProductDeletedConsumer>(context));
             });
         });
-
+        
         return builder;
     }
 }

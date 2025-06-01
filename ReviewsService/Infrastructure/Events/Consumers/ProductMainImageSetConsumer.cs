@@ -11,7 +11,7 @@ public class ProductMainImageSetConsumer(IMediator mediator) : IConsumer<Product
     {
         var @event = context.Message;
         var command = new SetMainProductImageCommand(
-            @event.Id,
+            @event.CorrelationId,
             @event.ImagePath);
         
         await mediator.Send(command, context.CancellationToken);

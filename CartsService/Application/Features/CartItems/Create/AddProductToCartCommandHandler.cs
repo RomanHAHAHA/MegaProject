@@ -1,6 +1,5 @@
 ﻿using CartsService.Domain.Entities;
 using CartsService.Domain.Interfaces;
-using Common.Domain.Entities;
 using Common.Domain.Models.Results;
 using MediatR;
 
@@ -17,6 +16,11 @@ public class AddProductToCartCommandHandler(
         if (product is null)
         {
             return BaseResponse.NotFound(nameof(ProductSnapshot));
+        }
+
+        if (request.UserId == product.SellerId)
+        {
+            return BaseResponse.BadRequest("You cannot add your own product to cart");
         }
         
         var cartItem = await cartsRepository.GetByIdAsync(

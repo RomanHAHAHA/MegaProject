@@ -46,7 +46,7 @@ namespace CartsService.Migrations
                     b.ToTable("CartItems", "cart");
                 });
 
-            modelBuilder.Entity("Common.Domain.Entities.ProductSnapshot", b =>
+            modelBuilder.Entity("CartsService.Domain.Entities.ProductSnapshot", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -63,6 +63,9 @@ namespace CartsService.Migrations
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -241,7 +244,7 @@ namespace CartsService.Migrations
 
             modelBuilder.Entity("CartsService.Domain.Entities.CartItem", b =>
                 {
-                    b.HasOne("Common.Domain.Entities.ProductSnapshot", "ProductSnapshot")
+                    b.HasOne("CartsService.Domain.Entities.ProductSnapshot", "ProductSnapshot")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)

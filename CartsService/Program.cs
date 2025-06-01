@@ -1,4 +1,6 @@
 using CartsService.API.Extensions;
+using Common.Infrastructure.Messaging.Idempotency;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 

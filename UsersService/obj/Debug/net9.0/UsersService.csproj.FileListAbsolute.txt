@@ -184,3 +184,4 @@ D:\Rider\Projects\OLXKiller\UsersService\bin\Debug\net9.0\MassTransit.EntityFram
 D:\Rider\Projects\OLXKiller\UsersService\obj\Debug\net9.0\UsersService.sourcelink.json
 D:\Rider\Projects\OLXKiller\UsersService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Mvc.dll
 D:\Rider\Projects\OLXKiller\UsersService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Shared.dll
+D:\Rider\Projects\OLXKiller\UsersService\bin\Debug\net9.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll

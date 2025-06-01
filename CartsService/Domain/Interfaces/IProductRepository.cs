@@ -1,4 +1,5 @@
-﻿using Common.Domain.Entities;
+﻿
+using CartsService.Domain.Entities;
 
 namespace CartsService.Domain.Interfaces;
 

@@ -1,22 +1,34 @@
 ﻿namespace Common.Domain.Interfaces;
 
-public interface ICacheService<T> where T : class
+public interface ICacheService<T>
 {
     Task SetAsync(
-        string key,
-        T data,
-        TimeSpan expiration,
+        string key, 
+        T data, 
+        TimeSpan expiration, 
         CancellationToken cancellationToken = default);
 
-    Task<T?> GetAsync(string key, CancellationToken cancellationToken = default);
-
+    Task<bool> SetIfNotExistsAsync(string key, T data, TimeSpan expiration);
+    
+    Task<T?> GetAsync(
+        string key, 
+        CancellationToken cancellationToken = default);
+    
     Task<T?> GetAsync(
         string key, 
         Func<Task<T?>> factory, 
-        TimeSpan expiration,
+        TimeSpan expiration, 
+        CancellationToken cancellationToken = default);
+    
+    Task RemoveAsync(
+        string key, 
+        CancellationToken cancellationToken = default);
+    
+    Task RemoveByPrefixAsync(
+        string prefix, 
         CancellationToken cancellationToken = default);
 
-    Task RemoveAsync(string key, CancellationToken cancellationToken = default);
-    
-    Task RemoveByPrefixAsync(string prefix, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(
+        string key, 
+        CancellationToken cancellationToken = default);
 }

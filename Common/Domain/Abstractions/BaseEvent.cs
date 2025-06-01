@@ -2,5 +2,5 @@
 
 public abstract record BaseEvent
 {
-    public DateTime OccurredOn { get; init; } = DateTime.UtcNow;
+    public Guid CorrelationId { get; set; } = Guid.NewGuid();
 }

@@ -1,12 +1,10 @@
-﻿using Common.API.Extensions;
-using Common.Application.Options;
+﻿using Common.API.Filters;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
 using EmailService.Application.Features.EmailConfirmations.ConfirmEmail;
 using EmailService.Application.Features.EmailConfirmations.SendCode;
 using EmailService.Domain.Interfaces;
 using MassTransit;
-using Microsoft.EntityFrameworkCore;
 
 namespace EmailService.API.Extensions;
 
@@ -46,18 +44,19 @@ public static class ServiceCollectionExtensions
             bugConfigurator.AddConsumers(typeof(Program).Assembly);
             bugConfigurator.SetKebabCaseEndpointNameFormatter();
     
-            bugConfigurator.UsingRabbitMq((context, configurator) =>
+            bugConfigurator.UsingRabbitMq((context, с) =>
             {
-                configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
+                с.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
                 {
                     h.Username(builder.Configuration["MessageBroker:UserName"]!);
                     h.Password(builder.Configuration["MessageBroker:Password"]!);
                 });
 
-                configurator.ConfigureEndpoints(context);
+                с.UseConsumeFilter(typeof(IdempotencyFilter<>), context);
+                с.ConfigureEndpoints(context);
             });
         });
-
+        
         return builder;
     }
 }

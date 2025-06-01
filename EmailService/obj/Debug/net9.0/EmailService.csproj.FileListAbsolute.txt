@@ -181,3 +181,4 @@ D:\Rider\Projects\OLXKiller\EmailService\bin\Debug\net9.0\MassTransit.dll
 D:\Rider\Projects\OLXKiller\EmailService\bin\Debug\net9.0\MassTransit.Abstractions.dll
 D:\Rider\Projects\OLXKiller\EmailService\bin\Debug\net9.0\MassTransit.RabbitMqTransport.dll
 D:\Rider\Projects\OLXKiller\EmailService\obj\Debug\net9.0\EmailService.sourcelink.json
+D:\Rider\Projects\OLXKiller\EmailService\bin\Debug\net9.0\Scrutor.dll

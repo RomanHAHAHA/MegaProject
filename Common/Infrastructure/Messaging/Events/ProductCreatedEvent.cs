@@ -2,4 +2,8 @@
 
 namespace Common.Infrastructure.Messaging.Events;
 
-public record ProductCreatedEvent(Guid Id, string Name, decimal Price, int StockQuantity) : BaseEvent;
+public record ProductCreatedEvent(
+    Guid ProductId, 
+    Guid SellerId, 
+    string Name,
+    decimal Price) : BaseEvent;

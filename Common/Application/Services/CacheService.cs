@@ -1,105 +1,114 @@
 ﻿using System.Collections.Concurrent;
 using Common.Domain.Interfaces;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace Common.Application.Services;
 
 public class CacheService<T>(
-    IDistributedCache distributedCache,
-    ILogger<CacheService<T>> logger) : ICacheService<T> where T : class
+    IConnectionMultiplexer connectionMultiplexer,
+    ILogger<CacheService<T>> logger) : ICacheService<T>
 {
+    private readonly IDatabase _db = connectionMultiplexer.GetDatabase();
     private static readonly ConcurrentDictionary<string, bool> CacheKeys = new();
 
     public async Task SetAsync(
-        string key, 
-        T data, 
+        string key,
+        T data,
         TimeSpan expiration,
-        CancellationToken cancellationToken = default) 
+        CancellationToken cancellationToken = default)
     {
-        var serializedData = JsonConvert.SerializeObject(
-            data,
-            new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            });
+        var serializedData = JsonConvert.SerializeObject(data, new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+        });
 
-        await distributedCache.SetStringAsync(
-            key,
-            serializedData,
-            new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = expiration,
-            }, token: cancellationToken);
+        await _db.StringSetAsync(key, serializedData, expiration);
+        CacheKeys.TryAdd(key, false);
 
-        CacheKeys.TryAdd(key, false); 
         logger.LogInformation($"Cache [{key}] set.");
     }
 
-    public async Task<T?> GetAsync(
-        string key, 
-        CancellationToken cancellationToken = default)
+    public async Task<bool> SetIfNotExistsAsync(string key, T data, TimeSpan expiration)
     {
-        var value = await distributedCache.GetStringAsync(key, token: cancellationToken);
+        var serializedData = JsonConvert.SerializeObject(data, new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+        });
 
-        if (value is null)
+        var result = await _db.StringSetAsync(key, serializedData, expiration, When.NotExists);
+        logger.LogInformation(result
+            ? $"Cache [{key}] set with NX."
+            : $"Cache [{key}] already exists.");
+
+        if (result)
+        {
+            CacheKeys.TryAdd(key, false);
+        }
+        
+        return result;
+    }
+
+    public async Task<T?> GetAsync(string key, CancellationToken cancellationToken = default)
+    {
+        var value = await _db.StringGetAsync(key);
+        if (value.IsNullOrEmpty)
         {
             logger.LogInformation($"Cache miss for key [{key}].");
-
-            return null;
+            return default;
         }
 
         logger.LogInformation($"Cache return value with key [{key}].");
-        
-        return JsonConvert.DeserializeObject<T>(value);
+        return JsonConvert.DeserializeObject<T>(value!);
     }
 
     public async Task<T?> GetAsync(
-        string key, 
-        Func<Task<T?>> factory, 
+        string key,
+        Func<Task<T?>> factory,
         TimeSpan expiration,
         CancellationToken cancellationToken = default)
     {
         var cachedValue = await GetAsync(key, cancellationToken);
-
+        
         if (cachedValue is not null)
         {
             return cachedValue;
         }
 
         var newValue = await factory();
-
+        
         if (newValue is null)
         {
-            return null;
+            return default;
         }
-        
+
         await SetAsync(key, newValue, expiration, cancellationToken);
-
+        
         return newValue;
-
     }
 
-    public async Task RemoveAsync(
-        string key, 
-        CancellationToken cancellationToken = default)
+    public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
-        await distributedCache.RemoveAsync(key, cancellationToken);
-        CacheKeys.TryRemove(key, out bool _); 
+        await _db.KeyDeleteAsync(key);
+        CacheKeys.TryRemove(key, out _);
 
         logger.LogInformation($"Cache [{key}] removed.");
     }
 
-    public async Task RemoveByPrefixAsync(
-        string prefix, 
-        CancellationToken cancellationToken = default)
+    public async Task RemoveByPrefixAsync(string prefix, CancellationToken cancellationToken = default)
     {
-        var tasks = CacheKeys.Keys
-            .Where(k => k.StartsWith(prefix)) 
-            .Select(k => RemoveAsync(k, cancellationToken)); 
+        var keys = CacheKeys.Keys.Where(k => k.StartsWith(prefix)).ToList();
+        var tasks = keys.Select(k => RemoveAsync(k, cancellationToken));
+        await Task.WhenAll(tasks);
 
-        await Task.WhenAll(tasks); 
         logger.LogInformation($"All cache keys with prefix [{prefix}] removed.");
+    }
+
+    public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
+    {
+        var exists = await _db.KeyExistsAsync(key);
+        logger.LogInformation($"Cache [{key}] exists: {exists}");
+        return exists;
     }
 }

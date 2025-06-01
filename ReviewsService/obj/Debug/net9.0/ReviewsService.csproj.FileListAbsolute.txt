@@ -183,3 +183,5 @@ D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\MassTransit.EntityFr
 D:\Rider\Projects\OLXKiller\ReviewsService\obj\Debug\net9.0\ReviewsService.sourcelink.json
 D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Mvc.dll
 D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Shared.dll
+D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\Scrutor.dll

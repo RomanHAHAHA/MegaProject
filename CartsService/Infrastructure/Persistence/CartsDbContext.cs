@@ -1,5 +1,4 @@
 ﻿using CartsService.Domain.Entities;
-using Common.Domain.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 

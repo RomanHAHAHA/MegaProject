@@ -11,7 +11,7 @@ public class ProductUpdatedConsumer(IMediator mediator) : IConsumer<ProductUpdat
     {
         var @event = context.Message;
         var command = new UpdateProductCommand(
-            @event.Id,
+            @event.CorrelationId,
             @event.Name,
             @event.Price);
         

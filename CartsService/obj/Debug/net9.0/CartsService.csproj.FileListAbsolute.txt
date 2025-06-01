@@ -181,3 +181,5 @@ D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\MassTransit.Abstractio
 D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\MassTransit.RabbitMqTransport.dll
 D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\MassTransit.EntityFrameworkCoreIntegration.dll
 D:\Rider\Projects\OLXKiller\CartsService\obj\Debug\net9.0\CartsService.sourcelink.json
+D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\Scrutor.dll

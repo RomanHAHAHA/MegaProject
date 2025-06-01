@@ -15,6 +15,7 @@
           "Microsoft.EntityFrameworkCore": "9.0.5",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.5",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.5",
+          "Microsoft.Extensions.Caching.StackExchangeRedis": "9.0.5",
           "RabbitMQ.Client": "7.1.2",
           "Scrutor": "6.0.1",
           "SharpGrip.FluentValidation.AutoValidation.Mvc": "1.5.0",
@@ -749,6 +750,20 @@
           }
         }
       },
+      "Microsoft.Extensions.Caching.StackExchangeRedis/9.0.5": {
+        "dependencies": {
+          "Microsoft.Extensions.Caching.Abstractions": "9.0.5",
+          "Microsoft.Extensions.Logging.Abstractions": "9.0.5",
+          "Microsoft.Extensions.Options": "9.0.5",
+          "StackExchange.Redis": "2.8.37"
+        },
+        "runtime": {
+          "lib/net9.0/Microsoft.Extensions.Caching.StackExchangeRedis.dll": {
+            "assemblyVersion": "9.0.5.0",
+            "fileVersion": "9.0.525.22904"
+          }
+        }
+      },
       "Microsoft.Extensions.Configuration.Abstractions/9.0.5": {
         "dependencies": {
           "Microsoft.Extensions.Primitives": "9.0.5"
@@ -1367,13 +1382,13 @@
       "Common/1.0.0": {
         "dependencies": {
           "FluentValidation.DependencyInjectionExtensions": "12.0.0",
+          "MassTransit.RabbitMQ": "8.4.1",
           "MediatR": "12.5.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "9.0.4",
           "Microsoft.AspNetCore.Mvc.Core": "2.3.0",
           "Microsoft.EntityFrameworkCore": "9.0.5",
           "Microsoft.EntityFrameworkCore.SqlServer": "9.0.5",
           "Newtonsoft.Json": "13.0.3",
-          "RabbitMQ.Client": "7.1.2",
           "StackExchange.Redis": "2.8.37"
         },
         "runtime": {
@@ -1733,6 +1748,13 @@
       "sha512": "sha512-qDmoAzIUBup5KZG1Abv51ifbHMCWFnaXbt05l+Sd92mLOpF9OwHOuoxu3XhzXaPGfq0Ns3pv1df5l8zuKjFgGw==",
       "path": "microsoft.extensions.caching.memory/9.0.5",
       "hashPath": "microsoft.extensions.caching.memory.9.0.5.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Caching.StackExchangeRedis/9.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bSn4ak8sjP8dfT4OoKXcUIMwodxfQhE+6eBP9HgyNFpsffSp/Tlnjn8aaB0Sqp+5l1s7XzpKiXHHbuCiiLDnTw==",
+      "path": "microsoft.extensions.caching.stackexchangeredis/9.0.5",
+      "hashPath": "microsoft.extensions.caching.stackexchangeredis.9.0.5.nupkg.sha512"
     },
     "Microsoft.Extensions.Configuration.Abstractions/9.0.5": {
       "type": "package",

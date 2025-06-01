@@ -1,4 +1,5 @@
 ﻿using Common.API.Extensions;
+using Common.API.Filters;
 using Common.Application.Options;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
@@ -43,7 +44,8 @@ public static class ServiceCollectionExtensions
 
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IHttpUserContext, HttpUserContext>();
-
+        builder.Services.AddApiAuthorization(builder.Configuration);
+        
         builder.Services.AddTransient<IPasswordHasher, PasswordHasher>();
         builder.Services.AddTransient<IJwtProvider, JwtProvider>();
         builder.Services.AddTransient<IFileStorageService, FileStorageService>();
@@ -52,9 +54,13 @@ public static class ServiceCollectionExtensions
         {
             cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommandHandler).Assembly);
         });
-
-        builder.Services.AddApiAuthorization(builder.Configuration);
-
+        
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration.GetConnectionString("Redis");
+        });
+        builder.Services.AddScoped<ICacheService<object>, CacheService<object>>();
+        
         return builder;
     }
 
@@ -81,18 +87,20 @@ public static class ServiceCollectionExtensions
                 options.UseSqlServer().UseBusOutbox();
             });
     
-            bugConfigurator.UsingRabbitMq((context, configurator) =>
+            bugConfigurator.UsingRabbitMq((context, с) =>
             {
-                configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
+                с.UseConsumeFilter(typeof(IdempotencyFilter<>), context);
+                
+                с.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
                 {
                     h.Username(builder.Configuration["MessageBroker:UserName"]!);
                     h.Password(builder.Configuration["MessageBroker:Password"]!);
                 });
         
-                configurator.ConfigureEndpoints(context);
+                с.ConfigureEndpoints(context);
             });
         });
-
+        
         return builder;
     }
 }

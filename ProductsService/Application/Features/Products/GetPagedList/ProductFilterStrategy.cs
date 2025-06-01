@@ -26,9 +26,7 @@ public class ProductFilterStrategy : IFilterStrategy<Product, ProductFilter>
             .WhereIf(filter.Categories != null && filter.Categories.Any(),
                 p => p.Categories.Any(c => filter.Categories!.Contains(c.Name)))
 
-            .WhereIf(filter.UserId != Guid.Empty, 
-                p => filter.ExcludeMyProducts ? 
-                    p.UserId != filter.UserId :
-                    p.UserId == filter.UserId);
+            .WhereIf(filter.UserId != Guid.Empty && filter.ExcludeMyProducts, 
+                    p => p.UserId != filter.UserId);
     }
 }

@@ -1,5 +1,5 @@
-﻿using CartsService.Domain.Interfaces;
-using Common.Domain.Entities;
+﻿using CartsService.Domain.Entities;
+using CartsService.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartsService.Infrastructure.Persistence.Repositories;

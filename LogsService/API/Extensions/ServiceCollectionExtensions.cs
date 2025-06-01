@@ -1,5 +1,7 @@
 ﻿using Common.API.Extensions;
+using Common.API.Filters;
 using Common.Application.Options;
+using Common.Application.Services;
 using Common.Domain.Interfaces;
 using LogsService.Application.Features.ActionLogs.GetLogsPagedList;
 using LogsService.Domain.Entiites;
@@ -31,6 +33,12 @@ public static class ServiceCollectionExtensions
 
     public static WebApplicationBuilder AddApplicationServices(this WebApplicationBuilder builder)
     {
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration.GetConnectionString("Redis");
+        });
+        builder.Services.AddScoped<ICacheService<object>, CacheService<object>>();
+        
         builder.Services.AddApiAuthorization(builder.Configuration);
 
         builder.Services.AddMediatR(cfg =>
@@ -62,18 +70,19 @@ public static class ServiceCollectionExtensions
                 options.UseSqlServer();
             });
     
-            bugConfigurator.UsingRabbitMq((context, configurator) =>
+            bugConfigurator.UsingRabbitMq((context, с) =>
             {
-                configurator.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
+                с.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
                 {
                     h.Username(builder.Configuration["MessageBroker:UserName"]!);
                     h.Password(builder.Configuration["MessageBroker:Password"]!);
                 });
-        
-                configurator.ConfigureEndpoints(context);
+                
+                с.UseConsumeFilter(typeof(IdempotencyFilter<>), context);
+                с.ConfigureEndpoints(context);
             });
         });
-
+        
         return builder;
     }
 }

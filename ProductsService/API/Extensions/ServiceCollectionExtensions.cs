@@ -1,4 +1,5 @@
 ﻿using Common.API.Extensions;
+using Common.API.Filters;
 using Common.API.Middlewares;
 using Common.Application.Options;
 using Common.Application.Services;
@@ -16,6 +17,7 @@ using ProductsService.Infrastructure.Messaging.Consumers;
 using ProductsService.Infrastructure.Persistence;
 using ProductsService.Infrastructure.Persistence.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+using StackExchange.Redis;
 
 namespace ProductsService.API.Extensions;
 
@@ -48,6 +50,11 @@ public static class ServiceCollectionExtensions
         builder.Services.AddScoped<IHttpUserContext, HttpUserContext>();
         builder.Services.AddApiAuthorization(builder.Configuration);
 
+        builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+        builder.Services.AddScoped(typeof(ICacheService<>), typeof(CacheService<>));
+        
         builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
         builder.Services.AddFluentValidationAutoValidation();
 
@@ -69,6 +76,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddConfiguredOptions<JwtOptions>(builder.Configuration);
         builder.Services.AddConfiguredOptions<CustomCookieOptions>(builder.Configuration);
         builder.Services.AddConfiguredOptions<ProductImagesOptions>(builder.Configuration);
+        builder.Services.AddConfiguredOptions<ServiceOptions>(builder.Configuration);
 
         return builder;
     }
@@ -88,6 +96,8 @@ public static class ServiceCollectionExtensions
             bugConfigurator.SetKebabCaseEndpointNameFormatter();
             bugConfigurator.UsingRabbitMq((context, c) =>
             {
+                c.UseConsumeFilter(typeof(IdempotencyFilter<>), context);
+                
                 c.Host(new Uri(builder.Configuration["MessageBroker:Host"]!), h =>
                 {
                     h.Username(builder.Configuration["MessageBroker:UserName"]!);
@@ -100,7 +110,7 @@ public static class ServiceCollectionExtensions
                 c.ConfigureEndpoints(context);
             });
         });
-
+        
         return builder;
     }
 }

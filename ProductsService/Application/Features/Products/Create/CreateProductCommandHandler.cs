@@ -36,9 +36,9 @@ public class CreateProductCommandHandler(
             ActionType = ActionType.Create,
             Message = $"Product {product.Id} created"
         }, cancellationToken);
-        
+
         await publishEndpoint.Publish(
-            new ProductCreatedEvent(product.Id, product.Name, product.Price, product.StockQuantity), 
+            new ProductCreatedEvent(product.Id, product.UserId, product.Name, product.Price), 
             cancellationToken);
     }
 }

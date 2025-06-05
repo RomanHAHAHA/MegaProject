@@ -1,9 +1,11 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using OrdersService.Domain.Entities;
 using OrdersService.Domain.Interfaces;
 
@@ -12,7 +14,8 @@ namespace OrdersService.Application.Features.Orders.SetStatus;
 public class SetOrderStatusCommandHandler(
     IOrdersRepository ordersRepository,
     IPublishEndpoint publishEndpoint,
-    IHttpUserContext httpContext) : IRequestHandler<SetOrderStatusCommand, BaseResponse>
+    IHttpUserContext httpContext,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<SetOrderStatusCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(SetOrderStatusCommand request, CancellationToken cancellationToken)
     {
@@ -38,6 +41,8 @@ public class SetOrderStatusCommandHandler(
     {
         await publishEndpoint.Publish(new SystemActionEvent
         {
+            CorrelationId = Guid.NewGuid(),
+            SenderServiceName = serviceOptions.Value.Name,
             UserId = httpContext.UserId,
             ActionType = ActionType.Update,
             Message = $"Order {orderId} status set {orderStatus}"

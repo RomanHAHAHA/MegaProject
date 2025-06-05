@@ -1,9 +1,11 @@
 ﻿using System.Data;
+using Common.Application.Options;
 using Common.Domain.Dtos;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Infrastructure.Persistence;
@@ -13,7 +15,8 @@ namespace ProductsService.Application.Features.Products.Reserve;
 public class ReserveOrderProductsCommandHandler(
     IProductsRepository productsRepository,
     IPublishEndpoint publisher,
-    ProductsDbContext dbContext) : IRequestHandler<ReserveOrderProductsCommand>
+    ProductsDbContext dbContext,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<ReserveOrderProductsCommand>
 {
     public async Task Handle(ReserveOrderProductsCommand request, CancellationToken cancellationToken)
     {
@@ -104,10 +107,14 @@ public class ReserveOrderProductsCommandHandler(
         CancellationToken cancellationToken)
     {
         await publisher.Publish(
-            new ProductsReservationFailedEvent(
-                request.OrderId,
-                request.UserId, 
-                productStockInfos), 
+            new ProductsReservationFailedEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                OrderId = request.OrderId,
+                UserId = request.UserId,
+                ProductStockInfos = productStockInfos
+            }, 
             cancellationToken);
     }
 
@@ -116,9 +123,13 @@ public class ReserveOrderProductsCommandHandler(
         CancellationToken cancellationToken)
     {
         await publisher.Publish(
-            new ProductsReservedEvent(
-                request.OrderId, 
-                request.UserId), 
+            new ProductsReservedEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                OrderId = request.OrderId,
+                UserId = request.UserId,
+            }, 
             cancellationToken);
     }
 }

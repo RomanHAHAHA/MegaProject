@@ -1,4 +1,5 @@
 ﻿using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
 using ReviewsService.Application.Features.Products.Create;
@@ -12,7 +13,7 @@ public class ProductCreatedConsumer(IMediator mediator) : IConsumer<ProductCreat
         var @event = context.Message;
         var command = new CreateProductCommand(
             @event.CorrelationId,
-            @event.CorrelationId,
+            @event.ProductId,
             @event.SellerId,
             @event.Name,
             @event.Price);

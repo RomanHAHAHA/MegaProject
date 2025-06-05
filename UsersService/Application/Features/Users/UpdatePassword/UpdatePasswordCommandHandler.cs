@@ -1,30 +1,23 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
-using FluentValidation;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using UsersService.Domain.Interfaces;
 
 namespace UsersService.Application.Features.Users.UpdatePassword;
 
 public class UpdatePasswordCommandHandler(
     IUsersRepository usersRepository,
-    IValidator<UpdatePasswordDto> validator,
     IPublishEndpoint publishEndpoint, 
-    IPasswordHasher passwordHasher) : IRequestHandler<UpdatePasswordCommand, BaseResponse>
+    IPasswordHasher passwordHasher,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<UpdatePasswordCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(UpdatePasswordCommand request, CancellationToken cancellationToken)
     {
-        var validationResult = await validator
-            .ValidateAsync(request.UpdatePasswordDto, cancellationToken);
-
-        if (!validationResult.IsValid)
-        {
-            return BaseResponse.BadRequest(validationResult);
-        }
-        
         var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
 
         if (user is null)
@@ -45,32 +38,34 @@ public class UpdatePasswordCommandHandler(
 
         var updated = await usersRepository.SaveChangesAsync(cancellationToken);
 
-        return updated ? 
-            BaseResponse.Ok() : 
-            BaseResponse.InternalServerError("Filed to update password");
+        return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
     }
     
     private async Task OnIncorrectPasswordEntered(Guid userId, CancellationToken cancellationToken)
     {
-        var systemActionEvent = new SystemActionEvent
-        {
-            UserId = userId,
-            ActionType = ActionType.IncorrectPasswordAttempt,
-            Message = "Incorrect password entered"
-        };
-        
-        await publishEndpoint.Publish(systemActionEvent, cancellationToken);
+        await publishEndpoint.Publish(
+            new SystemActionEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                UserId = userId,
+                ActionType = ActionType.IncorrectPasswordAttempt,
+                Message = "Incorrect password entered"
+            }, 
+            cancellationToken);
     }
     
     private async Task OnPasswordUpdated(Guid userId, CancellationToken cancellationToken)
     {
-        var systemActionEvent = new SystemActionEvent
-        {
-            UserId = userId,
-            ActionType = ActionType.Update,
-            Message = "Password reset"
-        };
-        
-        await publishEndpoint.Publish(systemActionEvent, cancellationToken);
+        await publishEndpoint.Publish(
+            new SystemActionEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                UserId = userId,
+                ActionType = ActionType.Update,
+                Message = "Password reset"
+            },
+            cancellationToken);
     }
 }

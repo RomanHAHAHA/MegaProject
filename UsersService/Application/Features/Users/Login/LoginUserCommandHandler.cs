@@ -1,9 +1,12 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
+using Common.Infrastructure.Messaging.Events.User;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using UsersService.Domain.Interfaces;
 
 namespace UsersService.Application.Features.Users.Login;
@@ -12,7 +15,8 @@ public class LoginUserCommandHandler(
     IUsersRepository usersRepository,
     IJwtProvider jwtProvider,
     IPasswordHasher passwordHasher,
-    IPublishEndpoint publisher) : IRequestHandler<LoginUserCommand, BaseResponse<string>>
+    IPublishEndpoint publisher,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<LoginUserCommand, BaseResponse<string>>
 {
     public async Task<BaseResponse<string>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
@@ -42,7 +46,16 @@ public class LoginUserCommandHandler(
 
     private async Task OnUserLoggedId(Guid userId, CancellationToken cancellationToken)
     {
-        await publisher.Publish(new UserLoggedInEvent(userId), cancellationToken);
+        await publisher.Publish(
+            new UserLoggedInEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                UserId = userId,
+                LogInTime = DateTime.UtcNow,
+            }, 
+            cancellationToken);
+        
         await usersRepository.SaveChangesAsync(cancellationToken);
     }    
     
@@ -51,10 +64,13 @@ public class LoginUserCommandHandler(
         await publisher.Publish(
             new SystemActionEvent
             {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
                 UserId = userId,
                 ActionType = ActionType.IncorrectPasswordAttempt,
-                Message = "Incorrect password entered"
-            }, cancellationToken);
+                Message = "Incorrect password entered",
+            }, 
+            cancellationToken);
         
         await usersRepository.SaveChangesAsync(cancellationToken);
     }

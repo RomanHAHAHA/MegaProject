@@ -102,9 +102,11 @@ public static class ServiceCollectionExtensions
                 c.ReceiveEndpoint("orders-product-created", e => e.ConfigureConsumer<ProductCreatedConsumer>(context));
                 c.ReceiveEndpoint("orders-product-updated", e => e.ConfigureConsumer<ProductUpdatedConsumer>(context));
                 c.ReceiveEndpoint("orders-product-main-image-set", e => e.ConfigureConsumer<ProductMainImageSetConsumer>(context));
+                c.ReceiveEndpoint("orders-product-deleted", e => e.ConfigureConsumer<ProductDeletedConsumer>(context));
+                c.ReceiveEndpoint("orders-product-reservation-failed", e => e.ConfigureConsumer<ProductsReservationFailedConsumer>(context));
                 c.ReceiveEndpoint("orders-user-avatar-updated", e => e.ConfigureConsumer<UserAvatarUpdatedConsumer>(context));
                 c.ReceiveEndpoint("orders-user-registered", e => e.ConfigureConsumer<UserRegisteredConsumer>(context));
-                c.ReceiveEndpoint("orders-product-deleted", e => e.ConfigureConsumer<ProductDeletedConsumer>(context));
+                c.ReceiveEndpoint("orders-user-deleted", e => e.ConfigureConsumer<UserDeletedConsumer>(context));
             });
         });
         

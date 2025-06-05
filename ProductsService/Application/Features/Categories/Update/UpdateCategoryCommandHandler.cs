@@ -1,11 +1,13 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Extensions;
 using ProductsService.Domain.Interfaces;
@@ -15,13 +17,12 @@ namespace ProductsService.Application.Features.Categories.Update;
 public class UpdateCategoryCommandHandler(
     ICategoriesRepository categoriesRepository,
     IPublishEndpoint publishEndpoint,
-    IHttpUserContext httpContext) : IRequestHandler<UpdateCategoryCommand, BaseResponse>
+    IHttpUserContext httpContext,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<UpdateCategoryCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
-        var category = await categoriesRepository.GetByIdAsync(
-            request.CategoryId, 
-            cancellationToken);
+        var category = await categoriesRepository.GetByIdAsync(request.CategoryId, cancellationToken);
 
         if (category is null)
         {
@@ -36,18 +37,16 @@ public class UpdateCategoryCommandHandler(
         {
             var updated = await categoriesRepository.SaveChangesAsync(cancellationToken);
 
-            return updated ? 
-                BaseResponse.Ok() :
-                BaseResponse.InternalServerError("Failed to create category");
+            return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
         }
         catch (DbUpdateException exception) when 
             (exception.InnerException is SqlException { Number: 2601 })
         {
             return BaseResponse.Conflict("Category with the same name already exists.");
         }
-        catch (Exception)
+        catch (Exception e)
         {
-            return BaseResponse.InternalServerError();
+            return BaseResponse.InternalServerError(e.Message);
         }
     }
 
@@ -56,6 +55,8 @@ public class UpdateCategoryCommandHandler(
         await publishEndpoint.Publish(
             new SystemActionEvent
             {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
                 UserId = httpContext.UserId,
                 ActionType = ActionType.Update,
                 Message = $"Category \"{category.Name}\" updated"

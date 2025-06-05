@@ -1,6 +1,7 @@
-﻿using Common.Domain.Interfaces;
+﻿using Common.Application.Options;
+using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.User;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Options;
@@ -13,7 +14,8 @@ public class SetAvatarImageCommandHandler(
     IUsersRepository usersRepository,
     IFileStorageService fileStorageService,
     IPublishEndpoint publishEndpoint,
-    IOptions<UserImagesOptions> options) : IRequestHandler<SetAvatarImageCommand, BaseResponse>
+    IOptions<UserImagesOptions> userImagesOptions,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<SetAvatarImageCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(
         SetAvatarImageCommand request, 
@@ -28,7 +30,7 @@ public class SetAvatarImageCommandHandler(
 
         var result = await fileStorageService.SaveFileAsync(
             request.Image.File,
-            options.Value.Path,
+            userImagesOptions.Value.Path,
             cancellationToken);
 
         if (result.IsFailure)
@@ -47,11 +49,16 @@ public class SetAvatarImageCommandHandler(
             BaseResponse.InternalServerError("Failed to set avatar image.");
     }
     
-    private async Task OnAvatarSet(
-        User user,
-        CancellationToken cancellationToken)
+    private async Task OnAvatarSet(User user, CancellationToken cancellationToken)
     {
-        var avatarSetEvent = new UserAvatarUpdatedEvent(user.Id, user.AvatarPath!);
-        await publishEndpoint.Publish(avatarSetEvent, cancellationToken);
+        await publishEndpoint.Publish(
+            new UserAvatarUpdatedEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                UserId = user.Id,
+                AvatarPath = user.AvatarPath!,
+            }, 
+            cancellationToken);
     }
 }

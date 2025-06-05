@@ -27,7 +27,7 @@ public class CacheService<T>(
         await _db.StringSetAsync(key, serializedData, expiration);
         CacheKeys.TryAdd(key, false);
 
-        logger.LogInformation($"Cache [{key}] set.");
+        //logger.LogInformation($"Cache [{key}] set.");
     }
 
     public async Task<bool> SetIfNotExistsAsync(string key, T data, TimeSpan expiration)
@@ -38,9 +38,9 @@ public class CacheService<T>(
         });
 
         var result = await _db.StringSetAsync(key, serializedData, expiration, When.NotExists);
-        logger.LogInformation(result
-            ? $"Cache [{key}] set with NX."
-            : $"Cache [{key}] already exists.");
+        // logger.LogInformation(result
+        //     ? $"Cache [{key}] set with NX."
+        //     : $"Cache [{key}] already exists.");
 
         if (result)
         {
@@ -55,11 +55,11 @@ public class CacheService<T>(
         var value = await _db.StringGetAsync(key);
         if (value.IsNullOrEmpty)
         {
-            logger.LogInformation($"Cache miss for key [{key}].");
+            //logger.LogInformation($"Cache miss for key [{key}].");
             return default;
         }
 
-        logger.LogInformation($"Cache return value with key [{key}].");
+        //logger.LogInformation($"Cache return value with key [{key}].");
         return JsonConvert.DeserializeObject<T>(value!);
     }
 
@@ -88,12 +88,24 @@ public class CacheService<T>(
         return newValue;
     }
 
+    public async Task UpdateAsync(
+        string key, 
+        Func<T?, Task<T>> updateFunc, 
+        TimeSpan expiration, 
+        CancellationToken token)
+    {
+        var value = await GetAsync(key, token);
+        var updated = await updateFunc(value);
+        
+        await SetAsync(key, updated, expiration, token);
+    }
+    
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         await _db.KeyDeleteAsync(key);
         CacheKeys.TryRemove(key, out _);
 
-        logger.LogInformation($"Cache [{key}] removed.");
+        //logger.LogInformation($"Cache [{key}] removed.");
     }
 
     public async Task RemoveByPrefixAsync(string prefix, CancellationToken cancellationToken = default)
@@ -102,13 +114,13 @@ public class CacheService<T>(
         var tasks = keys.Select(k => RemoveAsync(k, cancellationToken));
         await Task.WhenAll(tasks);
 
-        logger.LogInformation($"All cache keys with prefix [{prefix}] removed.");
+        //logger.LogInformation($"All cache keys with prefix [{prefix}] removed.");
     }
 
     public async Task<bool> ExistsAsync(string key, CancellationToken cancellationToken = default)
     {
         var exists = await _db.KeyExistsAsync(key);
-        logger.LogInformation($"Cache [{key}] exists: {exists}");
+        //logger.LogInformation($"Cache [{key}] exists: {exists}");
         return exists;
     }
 }

@@ -9,8 +9,8 @@ public class ProductFilter()
     public bool? IsAvailable { get; set; }
     
     public double? Rating { get; set; }
-    
-    public ICollection<string>? Categories { get; set; }
+
+    public ICollection<Guid> Categories { get; set; } = [];
     
     public Guid UserId { get; set; } = Guid.Empty;
     

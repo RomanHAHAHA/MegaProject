@@ -1,22 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2'; 
 import { API_BASE_URL } from '../apiConfig';
+import { useSignalR } from "../SignalRProvider";
+import { useNavigate } from 'react-router-dom';
 
 const registerUrl = `${API_BASE_URL}users-api/api/accounts/register`;
 
 const Register = () => {
+  const { connection, connectionId } = useSignalR();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nickName: '',
     email: '',
     password: '',
     passwordConfirm: '',
+    connectionId: connectionId
   });
 
   const [errors, setErrors] = useState({});
-  
-  const toLogin = () => {
-    window.location.href = '/login'; 
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,8 +39,7 @@ const Register = () => {
         body: JSON.stringify(formData),
       });
       if (response.ok) {
-          setErrors({});
-          toLogin();
+          return;
       } else {
         const error = await response.json();
         if (response.status === 409) {
@@ -58,6 +58,14 @@ const Register = () => {
           }
 
           setErrors(validationErrors);
+        
+          if (validationErrors["ConnectionId"]){
+            Swal.fire({
+              icon: 'error',
+              title: 'Server Error',
+              text: 'An internal server error occurred. Please try again later.',
+            });      
+          }
         }
       }
     } catch (error) {
@@ -68,6 +76,20 @@ const Register = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (connectionId) {
+      setFormData(prev => ({ ...prev, connectionId }));
+    }
+  }, [connectionId]);
+
+  useEffect(() => {
+    if(!connection) return;
+    connection.on("NotifyUserRegistered", () => {
+      setErrors({});
+      navigate("/confirm-email", { state: { email: formData.email } })
+    });
+  }, [connection, formData.email]);
 
   return (
     <div className="container mt-5" style={{ maxWidth: '400px' }}>

@@ -1,4 +1,5 @@
 ﻿using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.Email;
 using MassTransit;
 using MediatR;
 using UsersService.Application.Features.Users.MarkEmailConfirmed;

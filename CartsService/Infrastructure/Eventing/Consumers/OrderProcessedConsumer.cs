@@ -1,5 +1,5 @@
 ﻿using CartsService.Application.Features.CartItems.CleanCart;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.Order;
 using MassTransit;
 using MediatR;
 

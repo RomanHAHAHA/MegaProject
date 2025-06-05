@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { API_BASE_URL } from "../apiConfig";
+import { useSignalR } from "../SignalRProvider";
+import Swal from "sweetalert2";
 
 const baseCartUrl = `${API_BASE_URL}carts-api/api/carts/`;
 const getUserCartUrl = `${baseCartUrl}my`;
 
 export const useCart = () => {
+  const { connection } = useSignalR();
   const [cartItems, setCartItems] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
@@ -43,6 +46,24 @@ export const useCart = () => {
       console.error("Error removing item", error);
     }
   };
+
+  useEffect(() => {
+      if (!connection) return;
+
+      const handlePorductExceeded = (stockQuantity) => {
+          Swal.fire({
+              title: "Warning",
+              text: `There is only ${stockQuantity} items on stock`,
+              icon: 'warning',
+          });
+      };
+
+      connection.on("NotifyProductStockExceeded", handlePorductExceeded);
+
+      return () => {
+          connection.off("NotifyProductStockExceeded", handlePorductExceeded);
+      };
+  }, [connection]);
 
   useEffect(() => {
     fetchCart();

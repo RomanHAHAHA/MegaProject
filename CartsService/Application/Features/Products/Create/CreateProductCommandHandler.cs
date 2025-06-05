@@ -1,21 +1,23 @@
 ﻿using CartsService.Domain.Entities;
 using CartsService.Domain.Interfaces;
-using Common.Domain.Constants;
-using Common.Infrastructure.Messaging.Events;
+using Common.Application.Options;
+using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 
 namespace CartsService.Application.Features.Products.Create;
 
 public class CreateProductCommandHandler(
     IProductRepository productRepository,
-    IPublishEndpoint publisher) : IRequestHandler<CreateProductCommand>
+    IPublishEndpoint publisher,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<CreateProductCommand>
 {
     public async Task Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         var product = new ProductSnapshot
         {
-            Id = request.Id,
+            Id = request.ProductId,
             SellerId = request.SellerId,
             Name = request.Name,
             Price = request.Price,
@@ -38,23 +40,27 @@ public class CreateProductCommandHandler(
 
     private Task OnProductCreated(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var @event = new ProductCreatedByServiceEvent(
-            request.CorrelationId,
-            request.Id,
-            request.SellerId.ToString(),
-            ProductCreationRequiredServices.CartsService);
-
-        return publisher.Publish(@event, cancellationToken);
+        return publisher.Publish(
+            new ProductSnapshotCreatedEvent
+            {
+                CorrelationId = request.CorrelationId,
+                SenderServiceName = serviceOptions.Value.Name,
+                ProductId = request.ProductId,
+                UserId = request.SellerId
+            }, 
+            cancellationToken);
     }
     
     private Task OnProductCreationFailed(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var @event = new ProductFailedToCreateByServiceEvent(
-            request.CorrelationId,
-            request.Id,
-            request.SellerId.ToString(),
-            ProductCreationRequiredServices.CartsService);
-
-        return publisher.Publish(@event, cancellationToken);
+        return publisher.Publish(
+            new ProductSnapshotCreationFailedEvent
+            {
+                CorrelationId = request.CorrelationId,
+                SenderServiceName = serviceOptions.Value.Name,
+                ProductId = request.ProductId,
+                UserId = request.SellerId   
+            }, 
+            cancellationToken);
     }
 }

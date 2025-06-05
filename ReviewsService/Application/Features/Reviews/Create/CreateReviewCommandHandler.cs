@@ -1,8 +1,10 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using ReviewsService.Domain.Entities;
 using ReviewsService.Domain.Interfaces;
 
@@ -12,7 +14,8 @@ public class CreateReviewCommandHandler(
     IReviewsRepository reviewsRepository,
     IUsersRepository usersRepository,
     IProductsRepository productsRepository,
-    IPublishEndpoint publisher) : IRequestHandler<CreateReviewCommand, BaseResponse>
+    IPublishEndpoint publisher,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<CreateReviewCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
     {
@@ -38,21 +41,18 @@ public class CreateReviewCommandHandler(
         
         var created = await reviewsRepository.SaveChangesAsync(cancellationToken);
 
-        return created ? 
-            BaseResponse.Ok() : 
-            BaseResponse.InternalServerError();
+        return created ? BaseResponse.Ok() : BaseResponse.InternalServerError();
     }
 
     private async Task OnReviewCreated(CreateReviewCommand request, CancellationToken cancellationToken)
     {
-        var userId = request.UserId;
-        var productId = request.ReviewCreateDto.ProductId;
-        
         await publisher.Publish(new SystemActionEvent
         {
+            CorrelationId = Guid.NewGuid(),
+            SenderServiceName = serviceOptions.Value.Name,
             UserId = request.UserId,
             ActionType = ActionType.Create,
-            Message = $"User {userId} created review on product {productId}"
+            Message = $"User {request.UserId} created review on product {request.ReviewCreateDto.ProductId}"
         }, cancellationToken);
     }
 }

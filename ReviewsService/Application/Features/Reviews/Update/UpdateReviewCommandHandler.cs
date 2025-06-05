@@ -1,8 +1,10 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using ReviewsService.Application.Features.Reviews.Create;
 using ReviewsService.Domain.Entities;
 using ReviewsService.Domain.Interfaces;
@@ -11,7 +13,8 @@ namespace ReviewsService.Application.Features.Reviews.Update;
 
 public class UpdateReviewCommandHandler(
     IReviewsRepository reviewsRepository,
-    IPublishEndpoint publisher) : IRequestHandler<UpdateReviewCommand, BaseResponse>
+    IPublishEndpoint publisher,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<UpdateReviewCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(UpdateReviewCommand request, CancellationToken cancellationToken)
     {
@@ -40,6 +43,8 @@ public class UpdateReviewCommandHandler(
 
         await publisher.Publish(new SystemActionEvent
         {
+            CorrelationId = Guid.NewGuid(),
+            SenderServiceName = serviceOptions.Value.Name,
             UserId = request.UserId,
             ActionType = ActionType.Update,
             Message = $"Review of user {userId} on product {productId} updated"

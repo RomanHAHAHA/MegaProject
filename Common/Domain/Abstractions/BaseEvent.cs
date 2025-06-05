@@ -1,6 +1,8 @@
 ﻿namespace Common.Domain.Abstractions;
 
-public abstract record BaseEvent
+public abstract class BaseEvent
 {
-    public Guid CorrelationId { get; set; } = Guid.NewGuid();
+    public required Guid CorrelationId { get; init; }
+    
+    public required string SenderServiceName { get; init; }
 }

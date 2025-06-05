@@ -25,5 +25,8 @@ public class UserRegisterDtoValidator : AbstractValidator<UserRegisterDto>
         RuleFor(registerUserDto => registerUserDto.PasswordConfirm)
             .NotEmpty().WithMessage("Password confirmation is required")
             .Equal(registerUserDto => registerUserDto.Password).WithMessage("Passwords must match");
+
+        RuleFor(registerUserDto => registerUserDto.ConnectionId)
+            .NotEmpty().WithMessage("ERROR");
     }
 }

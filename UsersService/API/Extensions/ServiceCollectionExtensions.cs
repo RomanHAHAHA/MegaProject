@@ -7,6 +7,7 @@ using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+using StackExchange.Redis;
 using UsersService.Application.Features.Users.GetPagedList;
 using UsersService.Application.Features.Users.Login;
 using UsersService.Application.Features.Users.Register;
@@ -55,11 +56,10 @@ public static class ServiceCollectionExtensions
             cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommandHandler).Assembly);
         });
         
-        builder.Services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = builder.Configuration.GetConnectionString("Redis");
-        });
-        builder.Services.AddScoped<ICacheService<object>, CacheService<object>>();
+        builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+        builder.Services.AddScoped(typeof(ICacheService<>), typeof(CacheService<>));
         
         return builder;
     }
@@ -69,12 +69,15 @@ public static class ServiceCollectionExtensions
         builder.Services.AddConfiguredOptions<JwtOptions>(builder.Configuration);
         builder.Services.AddConfiguredOptions<CustomCookieOptions>(builder.Configuration);
         builder.Services.AddConfiguredOptions<UserImagesOptions>(builder.Configuration);
+        builder.Services.AddConfiguredOptions<ServiceOptions>(builder.Configuration);
 
         return builder;
     }
 
     public static WebApplicationBuilder AddMessaging(this WebApplicationBuilder builder)
     {
+        builder.Services.AddScoped(typeof(IdempotencyFilter<>));
+        
         builder.Services.AddMassTransit(bugConfigurator =>
         {
             bugConfigurator.AddConsumers(typeof(Program).Assembly);

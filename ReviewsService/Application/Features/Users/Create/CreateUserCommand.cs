@@ -2,4 +2,8 @@
 
 namespace ReviewsService.Application.Features.Users.Create;
 
-public record CreateUserCommand(Guid UserId, string NickName) : IRequest; 
+public record CreateUserCommand(
+    Guid CorrelationId,
+    Guid UserId, 
+    string NickName,
+    string ConnectionId) : IRequest; 

@@ -8,5 +8,7 @@ public interface IUsersRepository
 
     Task<UserSnapshot?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default);
 
+    void Delete(UserSnapshot user);
+    
     Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

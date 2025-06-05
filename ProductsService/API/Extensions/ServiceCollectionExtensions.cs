@@ -83,9 +83,12 @@ public static class ServiceCollectionExtensions
 
     public static WebApplicationBuilder AddMessaging(this WebApplicationBuilder builder)
     {
+        builder.Services.AddScoped(typeof(IdempotencyFilter<>));
+        
         builder.Services.AddMassTransit(bugConfigurator =>
         {
             bugConfigurator.AddConsumers(typeof(Program).Assembly);
+            bugConfigurator.SetKebabCaseEndpointNameFormatter();
             
             bugConfigurator.AddEntityFrameworkOutbox<ProductsDbContext>(options =>
             {
@@ -93,7 +96,6 @@ public static class ServiceCollectionExtensions
                 options.UseSqlServer().UseBusOutbox();
             });
     
-            bugConfigurator.SetKebabCaseEndpointNameFormatter();
             bugConfigurator.UsingRabbitMq((context, c) =>
             {
                 c.UseConsumeFilter(typeof(IdempotencyFilter<>), context);
@@ -106,6 +108,7 @@ public static class ServiceCollectionExtensions
         
                 c.ReceiveEndpoint("products-user-avatar-updated", e => e.ConfigureConsumer<UserAvatarUpdatedConsumer>(context));
                 c.ReceiveEndpoint("products-user-registered", e => e.ConfigureConsumer<UserRegisteredConsumer>(context));
+                c.ReceiveEndpoint("product-snapshot-creation-failed", e => e.ConfigureConsumer<ProductSnapshotCreationFailedConsumer>(context));
                 
                 c.ConfigureEndpoints(context);
             });

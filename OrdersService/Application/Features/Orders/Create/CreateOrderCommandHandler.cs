@@ -1,9 +1,12 @@
-﻿using Common.Domain.Dtos;
+﻿using Common.Application.Options;
+using Common.Domain.Dtos;
 using Common.Domain.Enums;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.Order;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using OrdersService.Domain.Entities;
 using OrdersService.Domain.Interfaces;
 using OrdersService.Infrastructure.Persistence;
@@ -14,7 +17,8 @@ public class CreateOrderCommandHandler(
     IOrdersRepository ordersRepository,
     IUsersRepository usersRepository,
     OrdersDbContext dbContext,
-    IPublishEndpoint publishEndpoint) : IRequestHandler<CreateOrderCommand, BaseResponse>
+    IPublishEndpoint publishEndpoint,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<CreateOrderCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
@@ -58,15 +62,27 @@ public class CreateOrderCommandHandler(
         List<CartItemDto> cartItems, 
         CancellationToken cancellationToken)
     {
+        var correlationId = Guid.NewGuid();
+        var serviceName = serviceOptions.Value.Name;
+        
         await publishEndpoint.Publish(new SystemActionEvent
         {
+            CorrelationId = correlationId,
+            SenderServiceName = serviceName,
             UserId = order.UserId,
             ActionType = ActionType.Create,
             Message = $"Order {order.Id} created"
         }, cancellationToken);
         
         await publishEndpoint.Publish(
-            new OrderCreatedEvent(order.UserId, order.Id, cartItems), 
+            new OrderCreatedEvent
+            {
+                CorrelationId = correlationId,
+                SenderServiceName = serviceName,
+                UserId = order.UserId,
+                OrderId = order.Id,
+                CartItems = cartItems,
+            }, 
             cancellationToken);
     }
 }

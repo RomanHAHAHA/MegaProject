@@ -21,7 +21,7 @@ public class EmailConfirmationsController(IMediator mediator) : ControllerBase
         return this.HandleResponse(response);
     }
     
-    [HttpPost]
+    [HttpPost("confirm")]
     [AllowAnonymous]
     public async Task<IActionResult> ConfirmEmailAsync(
         ConfirmEmailCommand command, 

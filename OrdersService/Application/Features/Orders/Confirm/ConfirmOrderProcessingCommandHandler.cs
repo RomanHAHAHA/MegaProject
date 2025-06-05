@@ -1,9 +1,9 @@
-﻿using Common.Domain.Enums;
-using Common.Infrastructure.Messaging.Events;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
+using Common.Infrastructure.Messaging.Events.Order;
 using MassTransit;
 using MediatR;
-using Microsoft.AspNetCore.SignalR;
-using OrdersService.API.Hubs;
+using Microsoft.Extensions.Options;
 using OrdersService.Domain.Interfaces;
 
 namespace OrdersService.Application.Features.Orders.Confirm;
@@ -11,7 +11,7 @@ namespace OrdersService.Application.Features.Orders.Confirm;
 public class ConfirmOrderProcessingCommandHandler(
     IOrdersRepository ordersRepository,
     IPublishEndpoint publisher,
-    IHubContext<OrdersHub, IOrdersClient> hubContext) : IRequestHandler<ConfirmOrderProcessingCommand>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<ConfirmOrderProcessingCommand>
 {
     public async Task Handle(ConfirmOrderProcessingCommand request, CancellationToken cancellationToken)
     {
@@ -19,34 +19,33 @@ public class ConfirmOrderProcessingCommandHandler(
 
         if (order is null)
         {
-            await hubContext.Clients
-                .User(request.UserId.ToString())
-                .OrderFailed("Unexpected error occured during processing of the order");
-                
+            //TODO: handling error
             return;
         }
 
-        order.Status = OrderStatus.Reserved;
-        var saved = await ordersRepository.SaveChangesAsync(cancellationToken);
-
-        if (!saved)
+        try
         {
-            await hubContext.Clients
-                .User(request.UserId.ToString())
-                .OrderFailed("Unexpected error occured during processing of the order"); 
-            
-            return;
-        }
-
-        await OnOrderProcessed(order.UserId, cancellationToken);
+            order.Status = OrderStatus.Reserved;
+            await OnOrderProcessed(order.UserId, cancellationToken);
         
-        await hubContext.Clients
-            .User(request.UserId.ToString())
-            .OrderProcessed(order.UserId, "Order processed successfully");
+            await ordersRepository.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            //TODO: handle error
+            Console.WriteLine(e);
+        }
     }
 
     private async Task OnOrderProcessed(Guid userId, CancellationToken cancellationToken)
     {
-        await publisher.Publish(new OrderProcessedEvent(userId), cancellationToken);
+        await publisher.Publish(
+            new OrderProcessedEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                UserId = userId,
+            }, 
+            cancellationToken);
     }
 }

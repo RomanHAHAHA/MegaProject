@@ -21,8 +21,8 @@ public class DeleteProductCommandHandler(
         var deleted  = await productRepository.SaveChangesAsync(cancellationToken);
         
         var message = deleted ? 
-            $"Failed to delete product with id: {request.ProductId}" : 
-            $"Deleted product with id: {request.ProductId}";
+            $"Deleted product with id: {request.ProductId}" :
+            $"Failed to delete product with id: {request.ProductId}"; 
         
         logger.LogInformation(message);
     }

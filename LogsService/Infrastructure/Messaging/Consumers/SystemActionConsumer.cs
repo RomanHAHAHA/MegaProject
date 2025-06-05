@@ -1,4 +1,5 @@
 ﻿using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using LogsService.Application.Features.ActionLogs.LogSystemAction;
 using MassTransit;
 using MediatR;

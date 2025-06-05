@@ -1,21 +1,57 @@
+import Swal from "sweetalert2";
 import { API_BASE_URL } from "../apiConfig";
 import imagePlaсeholder from '../asserts/imagePlaceholder.jpg';
+import { useSignalR } from "../SignalRProvider";
+import { useEffect } from "react";
 
 const imagesUrl = `${API_BASE_URL}product-images/`;
 const addToCartUrl = `${API_BASE_URL}carts-api/api/carts`
 
 const ProductCard = ({ product }) => {
+    const { connection } = useSignalR();  
+
     const handleAddToCart = async () => {
         const response = await fetch(`${addToCartUrl}/${product.id}`, { method: 'POST', credentials: 'include' });
         if (response.ok) {
-
+          return;
+        } else if (response.status === 400) {
+          const error = await response.json();
+          Swal.fire({
+            title: 'Error',
+            icon: 'error',
+            text: error.message || "Unexpected error occured"
+          });
+        } else {
+          Swal.fire({
+            title: 'Error',
+            icon: 'error',
+            text: "Unexpected error occured"
+          });
         }
     }
+
+    useEffect(() => {
+        if (!connection) return;
+
+        const handlePorductExceeded = (stockQuantity) => {
+            Swal.fire({
+                title: "Warning",
+                text: `There is only ${stockQuantity} items on stock`,
+                icon: 'warning',
+            });
+        };
+
+        connection.on("NotifyProductStockExceeded", handlePorductExceeded);
+
+        return () => {
+            connection.off("NotifyProductStockExceeded", handlePorductExceeded);
+        };
+    }, [connection]);
 
     return (
     <div className="col-12 col-sm-6 col-lg-3 mb-4">
       <div
-        className="card h-100 bg-dark text-light border border-secondary rounded-4 shadow-sm overflow-hidden"
+        className="card h-100 bg-dark text-light rounded-4 overflow-hidden"
         style={{ transition: 'transform 0.2s ease-in-out' }}
       >
         <div

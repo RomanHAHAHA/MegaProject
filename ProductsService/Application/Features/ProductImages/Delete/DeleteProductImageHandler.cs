@@ -1,8 +1,10 @@
-﻿using Common.Domain.Interfaces;
+﻿using Common.Application.Options;
+using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Infrastructure.Persistence;
@@ -13,11 +15,10 @@ public class DeleteProductImageHandler(
     IProductImagesRepository imagesRepository,
     IFileStorageService fileStorageService,
     IPublishEndpoint publishEndpoint,
+    IOptions<ServiceOptions> serviceOptions,
     ProductsDbContext dbContext) : IRequestHandler<DeleteProductImage, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        DeleteProductImage request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(DeleteProductImage request, CancellationToken cancellationToken)
     {
         var image = await imagesRepository.GetByIdAsync(request.ImageId, cancellationToken);
 
@@ -52,9 +53,7 @@ public class DeleteProductImageHandler(
         return BaseResponse.Ok();
     }
     
-    private async Task SetNewMainImageAsync(
-        Guid productId, 
-        CancellationToken cancellationToken)
+    private async Task SetNewMainImageAsync(Guid productId, CancellationToken cancellationToken)
     {
         var images = await imagesRepository.GetProductImagesAsync(productId, cancellationToken);
         var newMainImage = images.FirstOrDefault();
@@ -69,11 +68,16 @@ public class DeleteProductImageHandler(
         await OnMainImageSet(newMainImage, cancellationToken);
     }
     
-    private async Task OnMainImageSet(
-        ProductImage image,
-        CancellationToken cancellationToken)
+    private async Task OnMainImageSet(ProductImage image, CancellationToken cancellationToken)
     {
-        var mainImageSetEvent = new ProductMainImageSetEvent(image.ProductId, image.ImagePath);
-        await publishEndpoint.Publish(mainImageSetEvent, cancellationToken);
+        await publishEndpoint.Publish(
+            new ProductMainImageSetEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                ProductId = image.ProductId,
+                ImagePath = image.ImagePath
+            }, 
+            cancellationToken);
     }
 }

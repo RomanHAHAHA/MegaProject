@@ -1,7 +1,7 @@
-﻿using Common.Infrastructure.Messaging.Events;
+﻿using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
-using OrdersService.Application.Features.Orders.HandleFailedProcessing;
+using OrdersService.Application.Features.Orders.Delete;
 
 namespace OrdersService.Infrastructure.Messaging.Consumers;
 
@@ -9,11 +9,8 @@ public class ProductsReservationFailedConsumer(IMediator mediator) : IConsumer<P
 {
     public async Task Consume(ConsumeContext<ProductsReservationFailedEvent> context)
     {
-        var command = new HandleFailedProcessingCommand(
-            context.Message.OrderId,
-            context.Message.UserId,
-            context.Message.ProductStockInfos);
-        
+        var @event = context.Message;
+        var command = new DeleteOrderCommand(@event.OrderId, @event.ProductStockInfos);
         await mediator.Send(command, context.CancellationToken);
     }
 }

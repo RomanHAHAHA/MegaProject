@@ -1,5 +1,6 @@
 ﻿using CartsService.Application.Features.Products.SetMainImage;
 using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
 

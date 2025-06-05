@@ -19,6 +19,12 @@ public interface ICacheService<T>
         Func<Task<T?>> factory, 
         TimeSpan expiration, 
         CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(
+        string key,
+        Func<T?, Task<T>> updateFunc,
+        TimeSpan expiration,
+        CancellationToken token);
     
     Task RemoveAsync(
         string key, 

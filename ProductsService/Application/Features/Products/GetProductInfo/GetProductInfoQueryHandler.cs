@@ -1,9 +1,11 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using ProductsService.Application.Features.Categories.GetAll;
 using ProductsService.Domain.Dtos;
 using ProductsService.Domain.Entities;
@@ -14,11 +16,10 @@ namespace ProductsService.Application.Features.Products.GetProductInfo;
 public class GetProductInfoQueryHandler(
     IProductsRepository productsRepository,
     IPublishEndpoint publishEndpoint,
-    IHttpUserContext httpContext) : IRequestHandler<GetProductInfoQuery, BaseResponse<ProductInfoDto>>
+    IHttpUserContext httpContext,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<GetProductInfoQuery, BaseResponse<ProductInfoDto>>
 {
-    public async Task<BaseResponse<ProductInfoDto>> Handle(
-        GetProductInfoQuery request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse<ProductInfoDto>> Handle(GetProductInfoQuery request, CancellationToken cancellationToken)
     {
         var product = await productsRepository
             .GetAllInfoByIdAsync(request.ProductId, cancellationToken);
@@ -58,11 +59,11 @@ public class GetProductInfoQueryHandler(
     {
         await publishEndpoint.Publish(new SystemActionEvent
         {
+            CorrelationId = Guid.NewGuid(),
+            SenderServiceName = serviceOptions.Value.Name,
             UserId = httpContext.UserId,
             ActionType = ActionType.Read,
-            Message = product is null ? 
-                $"Product {productId} not found" : 
-                $"Product {productId} read"
+            Message = product is null ? $"Product {productId} not found" : $"Product {productId} read"
         }, cancellationToken);
         
         await productsRepository.SaveChangesAsync(cancellationToken);

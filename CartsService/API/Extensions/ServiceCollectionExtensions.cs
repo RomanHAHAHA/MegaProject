@@ -86,6 +86,7 @@ public static class ServiceCollectionExtensions
                 c.ReceiveEndpoint("carts-product-updated", e => e.ConfigureConsumer<ProductUpdatedConsumer>(context));
                 c.ReceiveEndpoint("carts-product-main-image-set", e => e.ConfigureConsumer<ProductMainImageSetConsumer>(context));
                 c.ReceiveEndpoint("carts-product-deleted", e => e.ConfigureConsumer<ProductDeletedConsumer>(context));
+                c.ReceiveEndpoint("carts-order-processed", e => e.ConfigureConsumer<OrderProcessedConsumer>(context));
             });
         });
         

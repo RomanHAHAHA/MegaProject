@@ -4,6 +4,7 @@ using Common.Domain.Interfaces;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Common.API.Filters;
 
@@ -14,7 +15,14 @@ public class IdempotencyFilter<T>(
 {
     public async Task Send(ConsumeContext<T> context, IPipe<ConsumeContext<T>> next)
     {
-        var key = $"idempotent:{serviceOptions.Value.Name}:{typeof(T).Name}:{context.Message.CorrelationId}";
+        var keyObject = new
+        {
+            CorrelationId = context.Message.CorrelationId,
+            EventType = typeof(T).Name,
+            SenderServiceName = context.Message.SenderServiceName,
+            ReceiverServiceName = serviceOptions.Value.Name
+        };
+        var key = JsonConvert.SerializeObject(keyObject);
 
         var isNew = await cache.SetIfNotExistsAsync(key, new object(), TimeSpan.FromHours(1));
 

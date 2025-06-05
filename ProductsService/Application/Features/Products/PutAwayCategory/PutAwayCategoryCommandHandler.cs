@@ -1,9 +1,11 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 
@@ -12,14 +14,12 @@ namespace ProductsService.Application.Features.Products.PutAwayCategory;
 public class PutAwayCategoryCommandHandler(
     IProductsRepository productsRepository,
     IPublishEndpoint publisher,
-    IHttpUserContext httpContext) : IRequestHandler<PutAwayCategoryCommand, BaseResponse>
+    IHttpUserContext httpContext,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<PutAwayCategoryCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        PutAwayCategoryCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(PutAwayCategoryCommand request, CancellationToken cancellationToken)
     {
-        var product = await productsRepository
-            .GetByIdWithCategoriesAsync(request.ProductId, cancellationToken);
+        var product = await productsRepository.GetByIdWithCategoriesAsync(request.ProductId, cancellationToken);
 
         if (product is null)
         {
@@ -37,10 +37,8 @@ public class PutAwayCategoryCommandHandler(
         await OnCategoryRemoved(categoryToPutAway, product.Id, cancellationToken);
         
         var updated = await productsRepository.SaveChangesAsync(cancellationToken);
-        
-        return updated ? 
-            BaseResponse.Ok() : 
-            BaseResponse.InternalServerError("Failed to update product categories");
+
+        return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
     }
     
     private async Task OnCategoryRemoved(
@@ -50,6 +48,8 @@ public class PutAwayCategoryCommandHandler(
     {
         await publisher.Publish(new SystemActionEvent
         {
+            CorrelationId = Guid.NewGuid(),
+            SenderServiceName = serviceOptions.Value.Name,
             UserId = httpContext.UserId,
             ActionType = ActionType.Update,
             Message = $"Category \"{category.Name}\" removed product {productId}"

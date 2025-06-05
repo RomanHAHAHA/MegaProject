@@ -2,8 +2,6 @@
 
 public static class ProductCreationRequiredServices
 {
-    public static string ProductsService => nameof(ProductsService);
-    
     public static string CartsService => nameof(CartsService);
     
     public static string OrdersService => nameof(OrdersService);

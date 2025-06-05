@@ -1,10 +1,12 @@
 import Swal from "sweetalert2";
 import { API_BASE_URL } from "../apiConfig";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSignalR } from "../SignalRProvider";
 
 const createProductUrl = `${API_BASE_URL}products-api/api/products`;
 
 const CreateProductForm = () => {
+    const { connection } = useSignalR();
     const initialFormState = {
         name: '',
         description: '',
@@ -41,11 +43,7 @@ const CreateProductForm = () => {
             if (response.ok) {
                 setFormData(initialFormState);
                 setValidationErrors([]);
-                Swal.fire({
-                    title: 'Success',
-                    text: 'Product created successfully',
-                    icon: 'success'
-                });
+                return;
             } else if (response.status === 400){
                 const data = await response.json();
                 if (data.errors) {
@@ -66,6 +64,22 @@ const CreateProductForm = () => {
             });
         }
     }
+
+    useEffect(() => {
+        connection.on("NotifyProductCreated", (productId, message) => {
+            Swal.fire({
+                title: message,
+                icon: 'success',
+            });
+        });
+        connection.on("NotifyProductCreationFailed", (error) => {
+            Swal.fire({
+                title: 'Failed to add product',
+                text: error,
+                icon: 'success',
+            });
+        });
+    }, [connection]);
 
     return (
         <div className="container mt-5" style={{ maxWidth: '900px' }}>

@@ -1,4 +1,5 @@
 ﻿using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.User;
 using MassTransit;
 using MediatR;
 using ProductsService.Application.Features.Users.Create;

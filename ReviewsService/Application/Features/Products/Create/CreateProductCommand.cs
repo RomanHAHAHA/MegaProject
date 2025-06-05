@@ -4,7 +4,7 @@ namespace ReviewsService.Application.Features.Products.Create;
 
 public record CreateProductCommand(
     Guid CorrelationId,
-    Guid Id,
+    Guid ProductId,
     Guid SellerId,
     string Name,
     decimal Price) : IRequest;

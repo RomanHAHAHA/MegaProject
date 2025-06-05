@@ -1,9 +1,11 @@
-﻿using Common.Domain.Enums;
+﻿using Common.Application.Options;
+using Common.Domain.Enums;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.SystemAction;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 
@@ -13,7 +15,8 @@ public class AddCategoryCommandHandler(
     IProductsRepository productsRepository,
     ICategoriesRepository categoriesRepository,
     IPublishEndpoint publisher,
-    IHttpUserContext httpContext) : IRequestHandler<AddCategoryCommand, BaseResponse>
+    IHttpUserContext httpContext,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<AddCategoryCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(AddCategoryCommand request, CancellationToken cancellationToken)
     {
@@ -48,6 +51,8 @@ public class AddCategoryCommandHandler(
     {
         await publisher.Publish(new SystemActionEvent
         {
+            CorrelationId = Guid.NewGuid(),
+            SenderServiceName = serviceOptions.Value.Name,
             UserId = httpContext.UserId,
             ActionType = ActionType.Update,
             Message = $"Category \"{category.Name}\" added to product {productId}"

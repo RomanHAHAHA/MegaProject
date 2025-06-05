@@ -4,4 +4,5 @@ public record UserRegisterDto(
     string NickName,
     string Email,
     string Password,
-    string PasswordConfirm);
+    string PasswordConfirm,
+    string ConnectionId);

@@ -21,6 +21,11 @@ public class UsersRepository(OrdersDbContext dbContext) : IUsersRepository
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
     }
 
+    public void Delete(UserSnapshot user)
+    {
+        dbContext.Users.Remove(user);
+    }
+
     public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken = default)
         => await dbContext.SaveChangesAsync(cancellationToken) > 0;
 }

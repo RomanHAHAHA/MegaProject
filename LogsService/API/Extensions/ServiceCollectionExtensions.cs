@@ -10,6 +10,7 @@ using LogsService.Infrastructure.Persistence;
 using LogsService.Infrastructure.Persistence.Repositories;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace LogsService.API.Extensions;
 
@@ -33,11 +34,10 @@ public static class ServiceCollectionExtensions
 
     public static WebApplicationBuilder AddApplicationServices(this WebApplicationBuilder builder)
     {
-        builder.Services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = builder.Configuration.GetConnectionString("Redis");
-        });
-        builder.Services.AddScoped<ICacheService<object>, CacheService<object>>();
+        builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+            ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+
+        builder.Services.AddScoped(typeof(ICacheService<>), typeof(CacheService<>));
         
         builder.Services.AddApiAuthorization(builder.Configuration);
 
@@ -53,12 +53,15 @@ public static class ServiceCollectionExtensions
     {
         builder.Services.AddConfiguredOptions<JwtOptions>(builder.Configuration);
         builder.Services.AddConfiguredOptions<CustomCookieOptions>(builder.Configuration);
+        builder.Services.AddConfiguredOptions<ServiceOptions>(builder.Configuration);
 
         return builder;
     }
 
     public static WebApplicationBuilder AddMessaging(this WebApplicationBuilder builder)
     {
+        builder.Services.AddScoped(typeof(IdempotencyFilter<>));
+        
         builder.Services.AddMassTransit(bugConfigurator =>
         {
             bugConfigurator.AddConsumers(typeof(Program).Assembly);

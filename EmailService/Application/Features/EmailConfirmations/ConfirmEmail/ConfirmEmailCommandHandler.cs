@@ -1,21 +1,22 @@
-﻿using Common.Domain.Interfaces;
+﻿using Common.Application.Options;
+using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using Common.Infrastructure.Messaging.Events;
+using Common.Infrastructure.Messaging.Events.Email;
 using MassTransit;
 using MediatR;
+using Microsoft.Extensions.Options;
 
 namespace EmailService.Application.Features.EmailConfirmations.ConfirmEmail;
 
 public class ConfirmEmailCommandHandler(
     ICacheService<string> cacheService,
     IPasswordHasher passwordHasher,
-    IPublishEndpoint publishEndpoint) : IRequestHandler<ConfirmEmailCommand, BaseResponse>
+    IPublishEndpoint publishEndpoint,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<ConfirmEmailCommand, BaseResponse>
 {
     public async Task<BaseResponse> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
     {
-        var hashedCode = await cacheService.GetAsync(
-            request.Email, 
-            cancellationToken);
+        var hashedCode = await cacheService.GetAsync(request.Email, cancellationToken);
 
         if (hashedCode is null)
         {
@@ -35,6 +36,13 @@ public class ConfirmEmailCommandHandler(
 
     private async Task OnEmailConfirmed(string email, CancellationToken cancellationToken)
     {
-        await publishEndpoint.Publish(new EmailConfirmedEvent(email), cancellationToken);
+        await publishEndpoint.Publish(
+            new EmailConfirmedEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                Email = email
+            }, 
+            cancellationToken);
     }
 }

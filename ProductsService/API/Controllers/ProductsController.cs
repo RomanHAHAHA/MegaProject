@@ -39,7 +39,7 @@ public class ProductsController(IMediator mediator) : ControllerBase
         CancellationToken cancellationToken)
     {
         var userId = User.GetId();
-
+        
         if (userId != Guid.Empty)
         {
             productFilter.UserId = userId;

@@ -1,4 +1,5 @@
-﻿using Common.Domain.Abstractions;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Common.Domain.Abstractions;
 using Common.Domain.Dtos;
 using Common.Domain.Enums;
 using OrdersService.Domain.Dtos;
@@ -17,6 +18,9 @@ public class Order : Entity<Guid>
 
     public List<OrderItem> OrderItems { get; set; } = [];
 
+    [NotMapped]
+    public double TotalPrice { get; set; }
+    
     private Order() { }
 
     public Order(Guid userId)

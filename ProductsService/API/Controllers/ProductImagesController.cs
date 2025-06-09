@@ -1,6 +1,4 @@
-﻿using Common.API.Authentication;
-using Common.API.Extensions;
-using Common.Domain.Enums;
+﻿using Common.API.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -81,7 +81,8 @@ public static class ServiceCollectionExtensions
             {
                 o.DuplicateDetectionWindow = TimeSpan.FromSeconds(30);
                 o.QueryDelay = TimeSpan.FromSeconds(1);
-                o.UseSqlServer().UseBusOutbox();
+                o.UseSqlServer(); 
+                o.UseBusOutbox();
             });
 
             bc.UsingRabbitMq((context, c) =>
@@ -103,6 +104,7 @@ public static class ServiceCollectionExtensions
                 c.ReceiveEndpoint("reviews-user-avatar-updated", e => e.ConfigureConsumer<UserAvatarUpdatedConsumer>(context));
                 c.ReceiveEndpoint("reviews-user-registered", e => e.ConfigureConsumer<UserRegisteredConsumer>(context));
                 c.ReceiveEndpoint("reviews-user-deleted", e => e.ConfigureConsumer<UserDeletedConsumer>(context));
+                c.ReceiveEndpoint("reviews-user-avatar-rollback", e => e.ConfigureConsumer<UserAvatarRollBackConsumer>(context));
             });
         });
         

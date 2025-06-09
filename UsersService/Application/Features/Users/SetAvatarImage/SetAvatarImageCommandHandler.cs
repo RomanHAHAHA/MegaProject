@@ -15,11 +15,10 @@ public class SetAvatarImageCommandHandler(
     IFileStorageService fileStorageService,
     IPublishEndpoint publishEndpoint,
     IOptions<UserImagesOptions> userImagesOptions,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<SetAvatarImageCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions,
+    ICacheService<string> cacheService) : IRequestHandler<SetAvatarImageCommand, BaseResponse>
 {
-    public async Task<BaseResponse> Handle(
-        SetAvatarImageCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<BaseResponse> Handle(SetAvatarImageCommand request, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
 
@@ -38,15 +37,23 @@ public class SetAvatarImageCommandHandler(
             return BaseResponse.InternalServerError(result.Error);
         }
         
+        await cacheService.SetAsync(
+            $"user-avatar:{user.Id}",
+            user.AvatarPath ?? string.Empty,
+            TimeSpan.FromMinutes(5),
+            cancellationToken);
+        
         user.AvatarPath = result.Value;
-
         await OnAvatarSet(user, cancellationToken);
 
         var updated = await usersRepository.SaveChangesAsync(cancellationToken);
 
-        return updated ? 
-            BaseResponse.Ok() : 
-            BaseResponse.InternalServerError("Failed to set avatar image.");
+        if (!updated)
+        {
+            return BaseResponse.InternalServerError();
+        }
+        
+        return BaseResponse.Ok();
     }
     
     private async Task OnAvatarSet(User user, CancellationToken cancellationToken)

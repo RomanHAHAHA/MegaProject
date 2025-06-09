@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using UsersService.Application.Features.Users.GenerateToken;
 using UsersService.Application.Features.Users.Login;
 using UsersService.Application.Features.Users.Register;
 
@@ -34,6 +35,24 @@ public class AccountsController(
             return this.HandleResponse(response);
         }
 
+        var token = response.Data;
+        HttpContext.Response.Cookies.Append(options.Value.Name, token);
+
+        return Ok(new { token });
+    }
+
+    [Authorize]
+    [HttpGet("refresh-token")]
+    public async Task<IActionResult> RefreshTokenAsync(CancellationToken cancellationToken)
+    {
+        var command = new GenerateTokenCommand(User.GetId());
+        var response = await mediator.Send(command, cancellationToken);
+
+        if (response.IsFailure)
+        {
+            return this.HandleResponse(response);
+        }
+        
         var token = response.Data;
         HttpContext.Response.Cookies.Append(options.Value.Name, token);
 

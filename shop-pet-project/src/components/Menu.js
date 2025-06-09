@@ -25,6 +25,9 @@ const Menu = () => {
         <Link className="navbar-brand" to="/">OLX Killer</Link>
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto align-items-center">
+            <li className="nav-item">
+              <Link className="nav-link" to="/orders">Orders</Link>
+            </li>
             <li className="nav-item position-relative">
               <button
                 className="btn btn-link nav-link p-0"
@@ -36,7 +39,7 @@ const Menu = () => {
             </li>
             {isAuthorized && user ? (
               <li className="nav-item d-flex align-items-center">
-                <Link className="nav-link" to="/profile">{user.nickName}</Link>
+                <Link className="nav-link" to="/profile/avatar">{user.nickName}</Link>
                 <img
                   src={user.avatarImageName ? `${avatarUrl}${user.avatarImageName}` : imagePlaceholder}
                   onError={(e) => { e.currentTarget.src = imagePlaceholder }}

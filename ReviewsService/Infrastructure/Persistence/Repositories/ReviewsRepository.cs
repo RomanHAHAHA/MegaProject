@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ReviewsService.Application.Features.Reviews.GetPendingReviews;
 using ReviewsService.Application.Features.Reviews.GetProductReviews;
+using ReviewsService.Domain.Dtos;
 using ReviewsService.Domain.Entities;
 using ReviewsService.Domain.Enums;
 using ReviewsService.Domain.Interfaces;
@@ -72,19 +73,22 @@ public class ReviewsRepository(ReviewsDbContext dbContext) : IReviewsRepository
     {
         return await dbContext.Reviews
             .AsNoTracking()
-            .AsSplitQuery()
             .Include(r => r.User)
-            .Include(r => r.Votes)
+            .Include(r => r.Product)
             .Where(r => r.Status == ReviewStatus.Pending)
-            .Select(r => new PendingReviewDto()
+            .OrderBy(r => r.CreatedAt)
+            .Select(r => new PendingReviewDto
             {
-                UserId = r.UserId,
                 ProductId = r.ProductId,
-                NickName = r.User!.NickName,
-                AvatarPath = r.User!.AvatarPath,
+                User = new UserReviewDto
+                {
+                    UserId = r.UserId,
+                    NickName = r.User!.NickName,
+                    AvatarPath = r.User!.AvatarPath,
+                },
                 Text = r.Text,
                 Rate = r.Rate,
-                CreatedAt = $"{r.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm}",
+                CreatedAt = $"{r.CreatedAt.ToLocalTime():dd.MM.yyyy}",
             })
             .ToListAsync(cancellationToken);
     }

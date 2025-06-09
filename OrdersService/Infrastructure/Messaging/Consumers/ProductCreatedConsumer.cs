@@ -1,15 +1,17 @@
-﻿using Common.Infrastructure.Messaging.Events;
-using Common.Infrastructure.Messaging.Events.Product;
+﻿using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
 using OrdersService.Application.Features.Products.Create;
 
 namespace OrdersService.Infrastructure.Messaging.Consumers;
 
-public class ProductCreatedConsumer(IMediator mediator) : IConsumer<ProductCreatedEvent>
+public class ProductCreatedConsumer(IServiceProvider serviceProvider) : IConsumer<ProductCreatedEvent>
 {
     public async Task Consume(ConsumeContext<ProductCreatedEvent> context)
     {
+        using var scope = serviceProvider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        
         var @event = context.Message;
         var command = new CreateProductCommand(
             @event.CorrelationId,

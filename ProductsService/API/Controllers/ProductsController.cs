@@ -11,6 +11,7 @@ using ProductsService.Application.Features.Products.Delete;
 using ProductsService.Application.Features.Products.GetPagedList;
 using ProductsService.Application.Features.Products.GetProductInfo;
 using ProductsService.Application.Features.Products.GetQuantity;
+using ProductsService.Application.Features.Products.RemoveCategory;
 using ProductsService.Application.Features.Products.Update;
 
 namespace ProductsService.API.Controllers;
@@ -91,6 +92,18 @@ public class ProductsController(IMediator mediator) : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new AddCategoryCommand(productId, categoryId);
+        var response = await mediator.Send(command, cancellationToken);
+        return this.HandleResponse(response);
+    }
+    
+    [HttpDelete("{productId:guid}/categories/{categoryId:guid}")]
+    [Authorize]
+    public async Task<IActionResult> RemoveCategoryAsync(
+        Guid productId,
+        Guid categoryId,
+        CancellationToken cancellationToken)
+    {
+        var command = new RemoveCategoryCommand(productId, categoryId);
         var response = await mediator.Send(command, cancellationToken);
         return this.HandleResponse(response);
     }

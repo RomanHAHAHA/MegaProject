@@ -6,6 +6,7 @@ using Common.Domain.Interfaces;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using OrdersService.Application.Features.GetPagedOrders;
 using OrdersService.Application.Features.Orders.Create;
 using OrdersService.Application.Options;
 using OrdersService.Application.Services;
@@ -15,6 +16,7 @@ using OrdersService.Infrastructure.Persistence;
 using OrdersService.Infrastructure.Persistence.Repositories;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using StackExchange.Redis;
+using Order = OrdersService.Domain.Entities.Order;
 
 namespace OrdersService.API.Extensions;
 
@@ -23,6 +25,10 @@ public static class ServiceCollectionExtensions
     public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<IOrdersRepository, OrdersRepository>();
+        builder.Services.AddScoped<IFilterStrategy<Order, OrderFilter>, OrdersFilterStrategy>();
+        builder.Services.AddScoped<ISortStrategy<Order>, OrdersSortStrategy>();
+        
+        
         builder.Services.AddScoped<IProductRepository, ProductsRepository>();
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         
@@ -107,6 +113,7 @@ public static class ServiceCollectionExtensions
                 c.ReceiveEndpoint("orders-user-avatar-updated", e => e.ConfigureConsumer<UserAvatarUpdatedConsumer>(context));
                 c.ReceiveEndpoint("orders-user-registered", e => e.ConfigureConsumer<UserRegisteredConsumer>(context));
                 c.ReceiveEndpoint("orders-user-deleted", e => e.ConfigureConsumer<UserDeletedConsumer>(context));
+                c.ReceiveEndpoint("orders-user-avatar-rollback", e => e.ConfigureConsumer<UserAvatarRollBackConsumer>(context));
             });
         });
         

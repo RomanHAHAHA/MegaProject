@@ -18,6 +18,10 @@ public interface INotificationClient
     
     Task NotifyUserRegistrationFailed();
     
+    Task NotifyUserAvatarUpdated(string message);
+
+    Task NotifyUserAvatarUpdateFailed(string message);
+    
     Task NotifyOrderProcessed(string message);
     
     Task NotifyProductsReservationFailed(List<ProductStockInfo> productStockInfos);

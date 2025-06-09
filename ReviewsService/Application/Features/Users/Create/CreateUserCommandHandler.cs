@@ -25,13 +25,11 @@ public class CreateUserCommandHandler(
         {
             await usersRepository.CreateAsync(user, cancellationToken);
             await OnUserCreated(request, cancellationToken);
-            
             await usersRepository.SaveChangesAsync(cancellationToken);
         }
         catch (Exception)
         {
             await OnUserCreationFailed(request, cancellationToken);
-            
             await usersRepository.SaveChangesAsync(cancellationToken);
         }
     }

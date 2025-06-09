@@ -1,12 +1,16 @@
-﻿using MediatR;
+﻿using Common.Application.Options;
+using Common.Infrastructure.Messaging.Events.Product;
+using MassTransit;
+using MediatR;
+using Microsoft.Extensions.Options;
 using OrdersService.Domain.Interfaces;
 
 namespace OrdersService.Application.Features.Products.SetMainImage;
 
 public class SetMainProductImageCommandHandler(
     IProductRepository productRepository,
-    ILogger<SetMainProductImageCommandHandler> logger) : 
-    IRequestHandler<SetMainProductImageCommand>
+    IPublishEndpoint pubEndpoint,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<SetMainProductImageCommand>
 {
     public async Task Handle(SetMainProductImageCommand request, CancellationToken cancellationToken)
     {
@@ -14,17 +18,33 @@ public class SetMainProductImageCommandHandler(
 
         if (product is null)
         {
-            logger.LogInformation($"Product with id: {request.ProductId} does not exist");
+            //failed event
             return;
         }
-        
-        product.MainImagePath = request.ImagePath;
-        var updated = await productRepository.SaveChangesAsync(cancellationToken);
 
-        var message = updated ? 
-            $"Failed to update product with id: {request.ProductId}" : 
-            $"Set main image to product with id: {request.ProductId}";
-        
-        logger.LogInformation(message);
+        try
+        {
+            product.MainImagePath = request.ImagePath;
+            //await OnMainImageSet(request, cancellationToken);
+            
+            var updated = await productRepository.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
+
+    /*private async Task OnMainImageSet(SetMainProductImageCommand request, CancellationToken cancellationToken)
+    {
+        await pubEndpoint.Publish(
+            new ProductSnapshotMainImageSetEvent
+            {
+                CorrelationId = request.CorrelationId,
+                SenderServiceName = serviceOptions.Value.Name,
+                ProductId = request.ProductId,
+            },
+            cancellationToken);
+    }*/
 }

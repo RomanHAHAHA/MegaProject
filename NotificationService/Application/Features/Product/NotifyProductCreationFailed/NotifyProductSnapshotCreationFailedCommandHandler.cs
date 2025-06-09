@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.API.Hubs;
-using NotificationService.Application.Features.Product.NotifyProductCreated;
+using NotificationService.Domain.Interfaces;
 
 namespace NotificationService.Application.Features.Product.NotifyProductCreationFailed;
 

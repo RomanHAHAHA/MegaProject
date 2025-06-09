@@ -1,8 +1,6 @@
-﻿using Common.API.Authentication;
-using Common.API.Extensions;
+﻿using Common.API.Extensions;
 using Common.Application.Options;
 using Common.Domain.Dtos;
-using Common.Domain.Enums;
 using Common.Domain.Models.Results;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -38,9 +36,7 @@ public class UsersController(IMediator mediator) : ControllerBase
 
     [HttpGet("{userId:guid}")]
     [Authorize]
-    public async Task<IActionResult> GetUserByIdAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken)
     {
         var response = await mediator.Send(new GetUserByIdQuery(userId), cancellationToken);
         return this.HandleResponse(response);

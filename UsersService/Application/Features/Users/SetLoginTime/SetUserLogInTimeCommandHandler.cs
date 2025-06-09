@@ -8,8 +8,7 @@ public class SetUserLogInTimeCommandHandler(
 {
     public async Task Handle(SetUserLogInTimeCommand request, CancellationToken cancellationToken)
     {
-        var user = await usersRepository
-            .GetByIdAsync(request.UserId, cancellationToken);
+        var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
         
         user!.LastLogIn = request.LoggedInTime;
         

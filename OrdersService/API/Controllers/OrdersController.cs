@@ -1,11 +1,11 @@
-﻿using Common.API.Authentication;
-using Common.API.Extensions;
+﻿using Common.API.Extensions;
 using Common.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrdersService.Application.Features.HasUserOrderedProduct;
 using OrdersService.Application.Features.Orders.Create;
+using OrdersService.Application.Features.Orders.GetConfirmedOrders;
 using OrdersService.Application.Features.Orders.GetUsersOrders;
 using OrdersService.Application.Features.Orders.SetStatus;
 using OrdersService.Domain.Dtos;
@@ -39,6 +39,15 @@ public class OrdersController(
     public async Task<IActionResult> GetMyOrdersAsync(CancellationToken cancellationToken)
     {
         var command = new GetUserOrdersCommand(User.GetId());
+        var orders = await mediator.Send(command, cancellationToken);
+        return Ok(new { data = orders });
+    }
+    
+    [Authorize]
+    [HttpGet("confirmed")]
+    public async Task<IActionResult> GetConfirmedOrdersAsync(CancellationToken cancellationToken)
+    {
+        var command = new GetConfirmedOrdersQuery();
         var orders = await mediator.Send(command, cancellationToken);
         return Ok(new { data = orders });
     }

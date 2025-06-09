@@ -31,8 +31,8 @@ public class ReserveOrderProductsCommandHandler(
                 await connection.OpenAsync(cancellationToken);
             }
 
-            await using var transaction = await connection.BeginTransactionAsync(
-                IsolationLevel.Serializable, cancellationToken);
+            await using var transaction = await connection
+                .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
 
             try
             {
@@ -44,7 +44,8 @@ public class ReserveOrderProductsCommandHandler(
                 if (products.Count != request.CartItems.Count)
                 {
                     await PublishProductsReservationFailedEvent(request, [], cancellationToken);
-                    await transaction.RollbackAsync(cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                     return;
                 }
 
@@ -53,14 +54,15 @@ public class ReserveOrderProductsCommandHandler(
                 if (outOfStock.Count != 0)
                 {
                     await PublishProductsReservationFailedEvent(request, outOfStock, cancellationToken);
-                    await transaction.RollbackAsync(cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                     return;
                 }
 
                 UpdateStock(products, request.CartItems);
-                await dbContext.SaveChangesAsync(cancellationToken);
-
                 await PublishProductsReservedEvent(request, cancellationToken);
+
+                await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
             }
             catch

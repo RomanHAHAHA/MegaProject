@@ -10,7 +10,7 @@ public class ProductsReservationFailedConsumer(IMediator mediator) : IConsumer<P
     public async Task Consume(ConsumeContext<ProductsReservationFailedEvent> context)
     {
         var @event = context.Message;
-        var command = new DeleteOrderCommand(@event.OrderId, @event.ProductStockInfos);
+        var command = new DeleteOrderCommand(@event.OrderId);
         await mediator.Send(command, context.CancellationToken);
     }
 }

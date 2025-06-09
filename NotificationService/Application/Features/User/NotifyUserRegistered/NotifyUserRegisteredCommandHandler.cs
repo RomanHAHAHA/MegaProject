@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using NotificationService.API.Hubs;
 using NotificationService.Application.Features.Product.NotifyProductCreated;
+using NotificationService.Domain.Interfaces;
 
 namespace NotificationService.Application.Features.User.NotifyUserRegistered;
 
@@ -19,7 +20,7 @@ public class NotifyUserRegisteredCommandHandler(
     
     public async Task Handle(NotifyUserRegisteredCommand request, CancellationToken cancellationToken)
     {
-        var lockKey = $"lock:product-created:{request.CorrelationId}";
+        var lockKey = $"lock:user-registered:{request.CorrelationId}";
         var gotLock = await redisLockService.AcquireLockWithRetryAsync(
             lockKey, 
             TimeSpan.FromSeconds(2), 

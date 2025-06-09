@@ -17,12 +17,13 @@ public class ReviewsDbContext(DbContextOptions<ReviewsDbContext> options) : DbCo
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema("reviews");
         
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ReviewsDbContext).Assembly);
-        
+
         modelBuilder.AddInboxStateEntity();
-        modelBuilder.AddOutboxStateEntity();
         modelBuilder.AddOutboxMessageEntity();
+        modelBuilder.AddOutboxStateEntity();
     }
 }

@@ -5,7 +5,7 @@ import { useSignalR } from "../SignalRProvider";
 
 const createProductUrl = `${API_BASE_URL}products-api/api/products`;
 
-const CreateProductForm = () => {
+const CreateProductForm = ({ onCreated }) => {
     const { connection } = useSignalR();
     const initialFormState = {
         name: '',
@@ -66,12 +66,10 @@ const CreateProductForm = () => {
     }
 
     useEffect(() => {
-        connection.on("NotifyProductCreated", (productId, message) => {
-            Swal.fire({
-                title: message,
-                icon: 'success',
-            });
+        connection.on("NotifyProductCreated", (productId) => {
+            onCreated(productId);
         });
+
         connection.on("NotifyProductCreationFailed", (error) => {
             Swal.fire({
                 title: 'Failed to add product',
@@ -79,6 +77,11 @@ const CreateProductForm = () => {
                 icon: 'success',
             });
         });
+
+        return () => {
+            connection.off("NotifyProductCreated");
+            connection.off("NotifyProductCreationFailed");
+        };
     }, [connection]);
 
     return (

@@ -5,10 +5,13 @@ using ReviewsService.Application.Features.Users.Create;
 
 namespace ReviewsService.Infrastructure.Events.Consumers;
 
-public class UserRegisteredConsumer(IMediator mediator) : IConsumer<UserRegisteredEvent>
+public class UserRegisteredConsumer(IServiceProvider serviceProvider) : IConsumer<UserRegisteredEvent>
 {
     public async Task Consume(ConsumeContext<UserRegisteredEvent> context)
     {
+        using var scope = serviceProvider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        
         var @event = context.Message;
         var command = new CreateUserCommand(
             @event.CorrelationId,

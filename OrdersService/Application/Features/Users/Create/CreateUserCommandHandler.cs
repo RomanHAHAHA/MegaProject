@@ -1,5 +1,4 @@
 ﻿using Common.Application.Options;
-using Common.Infrastructure.Messaging.Events;
 using Common.Infrastructure.Messaging.Events.User;
 using MassTransit;
 using MediatR;
@@ -26,14 +25,12 @@ public class CreateUserCommandHandler(
         {
             await usersRepository.CreateAsync(user, cancellationToken);
             await OnUserCreated(request, cancellationToken);
-            
             await usersRepository.SaveChangesAsync(cancellationToken);
 
         }
         catch (Exception)
         {
             await OnUserCreationFailed(request, cancellationToken);    
-            
             await usersRepository.SaveChangesAsync(cancellationToken);
         }
     }

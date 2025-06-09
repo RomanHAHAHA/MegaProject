@@ -25,7 +25,7 @@ public class ConfirmOrderProcessingCommandHandler(
 
         try
         {
-            order.Status = OrderStatus.Reserved;
+            order.Status = OrderStatus.Confirmed;
             await OnOrderProcessed(order.UserId, cancellationToken);
         
             await ordersRepository.SaveChangesAsync(cancellationToken);

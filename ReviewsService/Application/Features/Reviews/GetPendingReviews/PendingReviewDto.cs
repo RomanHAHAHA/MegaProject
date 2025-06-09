@@ -1,18 +1,16 @@
-﻿namespace ReviewsService.Application.Features.Reviews.GetPendingReviews;
+﻿using ReviewsService.Domain.Dtos;
+
+namespace ReviewsService.Application.Features.Reviews.GetPendingReviews;
 
 public class PendingReviewDto
 {
-    public Guid ProductId { get; set; }
+    public required Guid ProductId { get; set; }
     
-    public Guid UserId { get; set; }
-    
-    public string NickName { get; set; } = string.Empty;
+    public required UserReviewDto User { get; set; }
 
-    public string AvatarPath { get; set; } = string.Empty;
+    public required string Text { get; set; } 
 
-    public string Text { get; set; } = string.Empty;
+    public required double Rate { get; set; } 
 
-    public double Rate { get; set; } 
-
-    public string CreatedAt { get; set; } = string.Empty;
+    public required string CreatedAt { get; set; }
 }

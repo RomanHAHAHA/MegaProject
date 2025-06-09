@@ -6,10 +6,13 @@ using MediatR;
 
 namespace CartsService.Infrastructure.Eventing.Consumers;
 
-public class ProductCreatedConsumer(IMediator mediator) : IConsumer<ProductCreatedEvent>
+public class ProductCreatedConsumer(IServiceProvider serviceProvider) : IConsumer<ProductCreatedEvent>
 {
     public async Task Consume(ConsumeContext<ProductCreatedEvent> context)
     {
+        using var scope = serviceProvider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        
         var @event = context.Message;
         var command = new CreateProductCommand(
             @event.CorrelationId,

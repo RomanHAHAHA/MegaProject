@@ -1,5 +1,4 @@
-﻿using Common.Infrastructure.Messaging.Events;
-using Common.Infrastructure.Messaging.Events.Review;
+﻿using Common.Infrastructure.Messaging.Events.Review;
 using MassTransit;
 using MediatR;
 using ProductsService.Application.Features.Products.UpdateProductRating;

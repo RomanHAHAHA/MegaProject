@@ -5,10 +5,13 @@ using MediatR;
 
 namespace CartsService.Infrastructure.Eventing.Consumers;
 
-public class OrderProcessedConsumer(IMediator mediator) : IConsumer<OrderProcessedEvent>
+public class OrderProcessedConsumer(IServiceProvider serviceProvider) : IConsumer<OrderProcessedEvent>
 {
     public async Task Consume(ConsumeContext<OrderProcessedEvent> context)
     {
+        using var scope = serviceProvider.CreateScope();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        
         var @event = context.Message;
         var command = new CleanCartCommand(@event.UserId);
         await mediator.Send(command, context.CancellationToken);

@@ -4,7 +4,8 @@ using Common.Application.Options;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
 using MassTransit;
-using NotificationService.Application.Features.Product.NotifyProductCreated;
+using NotificationService.Application.Services;
+using NotificationService.Domain.Interfaces;
 using NotificationService.Infrastructure.Consumers;
 using StackExchange.Redis;
 
@@ -18,7 +19,6 @@ public static class ServiceCollectionExtensions
         
         builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
             ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
-        //builder.Services.AddSingleton<IRedisLockService, RedisLockService>();
 
         builder.Services.AddScoped(typeof(ICacheService<>), typeof(CacheService<>));
         builder.Services.AddScoped<IHashCacheService, RedisHashCacheService>();

@@ -2,7 +2,7 @@
 
 namespace OrdersService.Domain.Interfaces;
 
-public interface IProductRepository
+public interface IProductsRepository
 {
     Task CreateAsync(ProductSnapshot product, CancellationToken cancellationToken = default);
     

@@ -10,7 +10,7 @@ public class OrderServiceClient(
     HttpClient httpClient,
     IHttpUserContext httpContext) : IOrderServiceClient
 {
-    public async Task<BaseResponse<bool>> HasUserOrderedProductAsync(
+    public async Task<ApiResponse<bool>> HasUserOrderedProductAsync(
         Guid productId,
         CancellationToken cancellationToken = default)
     {
@@ -18,7 +18,7 @@ public class OrderServiceClient(
 
         if (string.IsNullOrEmpty(accessToken))
         {
-            return BaseResponse<bool>.UnAuthorized();
+            return ApiResponse<bool>.UnAuthorized();
         }
 
         httpClient.DefaultRequestHeaders.Authorization = 
@@ -38,7 +38,7 @@ public class OrderServiceClient(
 
         var result = responseDto?.Data ?? false;
 
-        return BaseResponse<bool>.Ok(result);
+        return ApiResponse<bool>.Ok(result);
     }
 }
 

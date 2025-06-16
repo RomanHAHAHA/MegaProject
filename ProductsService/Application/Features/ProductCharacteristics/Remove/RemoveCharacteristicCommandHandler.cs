@@ -1,32 +1,30 @@
 ﻿using Common.Domain.Models.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using ProductsService.Domain.Entities;
-using ProductsService.Domain.Interfaces;
+using ProductsService.Infrastructure.Persistence;
 
 namespace ProductsService.Application.Features.ProductCharacteristics.Remove;
 
 public class RemoveCharacteristicCommandHandler(
-    IProductCharacteristicsRepository characteristicsRepository) : 
-    IRequestHandler<RemoveCharacteristicCommand, BaseResponse>
+    ProductsDbContext dbContext) : IRequestHandler<RemoveCharacteristicCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(
-        RemoveCharacteristicCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(RemoveCharacteristicCommand request, CancellationToken cancellationToken)
     {
-        var characteristic = await characteristicsRepository.GetByIdAsync(
-            request.ProductId,
-            request.Name,
-            cancellationToken);
+        var characteristic = await dbContext.ProductCharacteristics
+            .FirstOrDefaultAsync(c => 
+                    c.ProductId == request.ProductId && 
+                    c.Name == request.Name, 
+                cancellationToken);
 
         if (characteristic is null)
         {
-            return BaseResponse.NotFound(nameof(ProductCharacteristic));
+            return ApiResponse.NotFound(nameof(ProductCharacteristic));
         }
         
-        characteristicsRepository.Delete(characteristic);
-        
-        var deleted = await characteristicsRepository.SaveChangesAsync(cancellationToken);
+        dbContext.ProductCharacteristics.Remove(characteristic);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
-        return deleted ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return ApiResponse.Ok();
     }
 }

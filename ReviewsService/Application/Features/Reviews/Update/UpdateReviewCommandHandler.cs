@@ -14,9 +14,9 @@ namespace ReviewsService.Application.Features.Reviews.Update;
 public class UpdateReviewCommandHandler(
     IReviewsRepository reviewsRepository,
     IPublishEndpoint publisher,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<UpdateReviewCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<UpdateReviewCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(UpdateReviewCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(UpdateReviewCommand request, CancellationToken cancellationToken)
     {
         var review = await reviewsRepository.GetByIdAsync(
             request.UserId,
@@ -25,7 +25,7 @@ public class UpdateReviewCommandHandler(
 
         if (review is null)
         {
-            return BaseResponse.NotFound(nameof(Review));
+            return ApiResponse.NotFound(nameof(Review));
         }
         
         UpdateReview(review, request.ReviewCreateDto);
@@ -33,7 +33,7 @@ public class UpdateReviewCommandHandler(
         
         var updated = await reviewsRepository.SaveChangesAsync(cancellationToken);
 
-        return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return updated ? ApiResponse.Ok() : ApiResponse.InternalServerError();
     }
 
     private async Task OnReviewUpdated(UpdateReviewCommand request, CancellationToken cancellationToken)
@@ -41,14 +41,15 @@ public class UpdateReviewCommandHandler(
         var userId = request.UserId;
         var productId = request.ReviewCreateDto.ProductId;
 
-        await publisher.Publish(new SystemActionEvent
-        {
-            CorrelationId = Guid.NewGuid(),
-            SenderServiceName = serviceOptions.Value.Name,
-            UserId = request.UserId,
-            ActionType = ActionType.Update,
-            Message = $"Review of user {userId} on product {productId} updated"
-        }, cancellationToken);
+        await publisher.Publish(
+            new SystemActionEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                UserId = request.UserId,
+                ActionType = ActionType.Update,
+                Message = $"Review of user {userId} on product {productId} updated"
+            }, cancellationToken);
     }
     
     private void UpdateReview(Review review, ReviewCreateDto reviewCreateDto)

@@ -18,9 +18,9 @@ public class RegisterUserCommandHandler(
     IUsersRepository usersRepository,
     IPasswordHasher passwordHasher,
     IPublishEndpoint publishEndpoint,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<RegisterUserCommand, BaseResponse<Guid>>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<RegisterUserCommand, ApiResponse<Guid>>
 {
-    public async Task<BaseResponse<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<Guid>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
         var user = User.FromRegisterDto(request.RegisterDto, passwordHasher);
 
@@ -31,16 +31,16 @@ public class RegisterUserCommandHandler(
             
             var created = await usersRepository.SaveChangesAsync(cancellationToken);
 
-            return created ? user.Id : BaseResponse<Guid>.InternalServerError();
+            return created ? user.Id : ApiResponse<Guid>.InternalServerError();
         }
         catch (DbUpdateException exception) when 
             (exception.InnerException is SqlException { Number: 2627 })
         {
-            return BaseResponse<Guid>.Conflict("User with the same email already exists.");
+            return ApiResponse<Guid>.Conflict("User with the same email already exists.");
         }
         catch (Exception)
         {
-            return BaseResponse<Guid>.InternalServerError();
+            return ApiResponse<Guid>.InternalServerError();
         }
     }
 

@@ -3,4 +3,4 @@ using MediatR;
 
 namespace UsersService.Application.Features.Users.SetAvatarImage;
 
-public record SetAvatarImageCommand(Guid UserId, SetAvatarImageDto Image) : IRequest<BaseResponse>;
+public record SetAvatarImageCommand(Guid UserId, SetAvatarImageDto Image) : IRequest<ApiResponse>;

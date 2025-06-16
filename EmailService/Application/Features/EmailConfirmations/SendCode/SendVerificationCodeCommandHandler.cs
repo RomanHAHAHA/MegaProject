@@ -9,31 +9,24 @@ public class SendVerificationCodeCommandHandler(
     IVerificationCodeGenerator verificationCodeGenerator,
     IEmailSender emailSender, 
     IPasswordHasher passwordHasher,
-    ICacheService<string> cacheService) : IRequestHandler<SendVerificationCodeCommand, BaseResponse>
+    ICacheService<string> cacheService) : IRequestHandler<SendVerificationCodeCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(SendVerificationCodeCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(SendVerificationCodeCommand request, CancellationToken cancellationToken)
     {
         var code = verificationCodeGenerator.Generate();
         var hashedCode = passwordHasher.HashPassword(code);
         
-        try
-        {
-            await cacheService.SetAsync(
-                request.Email,
-                hashedCode,
-                TimeSpan.FromMinutes(3),
-                cancellationToken);
+        await cacheService.SetAsync(
+            request.Email,
+            hashedCode,
+            TimeSpan.FromMinutes(3),
+            cancellationToken);
 
-            await emailSender.SendMessageAsync(
-                request.Email, 
-                "Verification Code", 
-                $"Your verification code is: {code}");
+        await emailSender.SendMessageAsync(
+            request.Email, 
+            "Verification Code", 
+            $"Your verification code is: {code}");
 
-            return BaseResponse.Ok();
-        }
-        catch (Exception)
-        {
-            return BaseResponse.InternalServerError();
-        }    
+        return ApiResponse.Ok();  
     }
 }

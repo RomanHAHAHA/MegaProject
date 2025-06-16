@@ -1,7 +1,7 @@
 ﻿using Common.Infrastructure.Messaging.Events.CartItem;
 using MassTransit;
 using MediatR;
-using ProductsService.Application.Features.Products.CheckStockQuantity;
+using ProductsService.Application.Features.Products.Commands.CheckStockQuantity;
 
 namespace ProductsService.Infrastructure.Messaging.Consumers;
 

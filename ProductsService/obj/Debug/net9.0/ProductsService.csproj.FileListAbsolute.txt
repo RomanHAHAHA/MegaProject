@@ -185,3 +185,5 @@ D:\Rider\Projects\OLXKiller\ProductsService\obj\Debug\net9.0\ProductsService.sou
 D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Mvc.dll
 D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Shared.dll
 D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\Polly.dll
+D:\Rider\Projects\OLXKiller\ProductsService\bin\Debug\net9.0\Polly.Core.dll

@@ -3,4 +3,4 @@ using MediatR;
 
 namespace EmailService.Application.Features.EmailConfirmations.ConfirmEmail;
 
-public record ConfirmEmailCommand(string Email, string Code) : IRequest<BaseResponse>;
+public record ConfirmEmailCommand(string Email, string Code) : IRequest<ApiResponse>;

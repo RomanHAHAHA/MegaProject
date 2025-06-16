@@ -8,14 +8,14 @@ using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using ProductsService.Application.Features.ProductImages.Create;
-using ProductsService.Application.Features.Products.Create;
-using ProductsService.Application.Features.Products.GetPagedList;
-using ProductsService.Application.Services;
+using ProductsService.Application.Features.Products.Commands.Create;
+using ProductsService.Application.Features.Products.Queries.GetPagedList;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 using ProductsService.Infrastructure.Messaging.Consumers;
 using ProductsService.Infrastructure.Persistence;
 using ProductsService.Infrastructure.Persistence.Repositories;
+using ProductsService.Infrastructure.Services;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 using StackExchange.Redis;
 
@@ -31,7 +31,6 @@ public static class ServiceCollectionExtensions
 
         builder.Services.AddScoped<ICategoriesRepository, CategoriesRepository>();
         builder.Services.AddScoped<IProductImagesRepository, ProductImagesRepository>();
-        builder.Services.AddScoped<IProductCharacteristicsRepository, ProductCharacteristicsRepository>();
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 
         builder.Services.AddDbContext<ProductsDbContext>(options =>
@@ -93,7 +92,8 @@ public static class ServiceCollectionExtensions
             bugConfigurator.AddEntityFrameworkOutbox<ProductsDbContext>(options =>
             {
                 options.QueryDelay = TimeSpan.FromSeconds(1);
-                options.UseSqlServer().UseBusOutbox();
+                options.UseSqlServer();
+                options.UseBusOutbox();
             });
     
             bugConfigurator.UsingRabbitMq((context, c) =>
@@ -108,7 +108,7 @@ public static class ServiceCollectionExtensions
         
                 c.ReceiveEndpoint("products-user-avatar-updated", e => e.ConfigureConsumer<UserAvatarUpdatedConsumer>(context));
                 c.ReceiveEndpoint("products-user-registered", e => e.ConfigureConsumer<UserRegisteredConsumer>(context));
-                c.ReceiveEndpoint("product-snapshot-creation-failed", e => e.ConfigureConsumer<ProductSnapshotCreationFailedConsumer>(context));
+                c.ReceiveEndpoint("products-product-snapshot-creation-failed", e => e.ConfigureConsumer<ProductSnapshotCreationFailedConsumer>(context));
                 
                 c.ConfigureEndpoints(context);
             });

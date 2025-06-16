@@ -1,3 +1,4 @@
+using Common.Infrastructure.Messaging.Publishers;
 using Microsoft.Extensions.FileProviders;
 using ProductsService.API.Extensions;
 using ProductsService.Application.Features.ProductImages.Create;
@@ -15,6 +16,8 @@ builder
     .AddOptionsServices();
 
 var app = builder.Build();
+
+EventPublisherExtensions.Initialize(app.Services);
 
 if (app.Environment.IsDevelopment())
 {

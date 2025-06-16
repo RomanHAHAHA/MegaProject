@@ -1,7 +1,9 @@
-﻿using Common.Domain.Dtos;
+﻿using System.Data;
+using Common.Domain.Dtos;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using OrdersService.Application.Features.GetPagedOrders;
+using Microsoft.EntityFrameworkCore.Storage;
+using OrdersService.Application.Features.Orders.GetPagedOrders;
 using OrdersService.Domain.Dtos;
 using OrdersService.Domain.Entities;
 
@@ -9,20 +11,19 @@ namespace OrdersService.Domain.Interfaces;
 
 public interface IOrdersRepository : IRepository<Order, Guid>
 {
-    Task<PagedList<Order>> GetPagedOrdersAsync(
+    Task<PagedList<OrderDto>> GetPagedOrdersAsync(
         OrderFilter orderFilter,
         SortParams sortParams,
         PageParams pageParams,
         CancellationToken cancellationToken);
     
-    Task<List<UserOrderDto>> GetUserOrdersByIdAsync(
+    Task<List<PersonalOrderDto>> GetPersonalOrdersAsync(
         Guid userId,
         CancellationToken cancellationToken = default);
 
     Task<List<OrderDto>> GetConfirmedOrdersAsync(CancellationToken cancellationToken = default);
     
-    Task<bool> HasUserOrderedProductAsync(
-        Guid userId,
-        Guid productId,
+    Task<IDbContextTransaction> BeginTransactionAsync(
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
         CancellationToken cancellationToken = default);
 }

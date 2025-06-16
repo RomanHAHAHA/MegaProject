@@ -16,26 +16,26 @@ public class LoginUserCommandHandler(
     IJwtProvider jwtProvider,
     IPasswordHasher passwordHasher,
     IPublishEndpoint publisher,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<LoginUserCommand, BaseResponse<string>>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<LoginUserCommand, ApiResponse<string>>
 {
-    public async Task<BaseResponse<string>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse<string>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetByEmailAsync(request.UserLoginDto.Email, cancellationToken);
 
         if (user is null)
         {
-            return BaseResponse<string>.NotFound("User with such email");
+            return ApiResponse<string>.NotFound("User with such email");
         }
 
         if (!user.EmailConfirmed)
         {
-            return BaseResponse<string>.Conflict("You have to confirm your email");
+            return ApiResponse<string>.Conflict("You have to confirm your email");
         }
 
         if (!passwordHasher.Verify(request.UserLoginDto.Password, user.PasswordHash))
         {
             await OnIncorrectPasswordEntered(user.Id, cancellationToken);
-            return BaseResponse<string>.BadRequest("Incorrect password");
+            return ApiResponse<string>.BadRequest("Incorrect password");
         }
 
         await OnUserLoggedId(user.Id, cancellationToken);

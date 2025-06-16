@@ -9,38 +9,38 @@ public static class ControllerExtensions
 {
     public static IActionResult HandleResponse(
         this ControllerBase controller, 
-        BaseResponse baseResponse)
+        ApiResponse apiResponse)
     {
-        if (baseResponse.IsSuccess)
+        if (apiResponse.IsSuccess)
         {
-            return controller.Ok(new { message = baseResponse.Description });
+            return controller.Ok(new { message = apiResponse.Description });
         }
 
-        if (baseResponse is { Description: ValidationResult validationResult, Status: HttpStatusCode.BadRequest })
+        if (apiResponse is { Description: ValidationResult validationResult, Status: HttpStatusCode.BadRequest })
         {
             var errors = validationResult.ToDictionary();
             return controller.BadRequest(new { errors });
         }
 
-        return CreateResponse(controller, baseResponse.Status, baseResponse.Description);
+        return CreateResponse(controller, apiResponse.Status, apiResponse.Description);
     }
 
     public static IActionResult HandleResponse<T>(
         this ControllerBase controller, 
-        BaseResponse<T> baseResponse)
+        ApiResponse<T> apiResponse)
     {
-        if (baseResponse.IsSuccess)
+        if (apiResponse.IsSuccess)
         {
-            return controller.Ok(new { data = baseResponse.Data });
+            return controller.Ok(new { data = apiResponse.Data });
         }
 
-        if (baseResponse is { Error: ValidationResult validationResult, Status: HttpStatusCode.BadRequest })
+        if (apiResponse is { Error: ValidationResult validationResult, Status: HttpStatusCode.BadRequest })
         {
             var errors = validationResult.ToDictionary();
             return controller.BadRequest(new { errors });
         }
 
-        return CreateResponse(controller, baseResponse.Status, baseResponse.Error);
+        return CreateResponse(controller, apiResponse.Status, apiResponse.Error);
     }
     
     private static IActionResult CreateResponse(

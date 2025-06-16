@@ -5,5 +5,6 @@ using MediatR;
 namespace OrdersService.Application.Features.Orders.SetStatus;
 
 public record SetOrderStatusCommand(
+    Guid InitiatorUserId,
     Guid OrderId, 
-    OrderStatus OrderStatus) : IRequest<BaseResponse>;
+    OrderStatus OrderStatus) : IRequest<ApiResponse>;

@@ -11,32 +11,32 @@ namespace EmailService.Application.Features.EmailConfirmations.ConfirmEmail;
 public class ConfirmEmailCommandHandler(
     ICacheService<string> cacheService,
     IPasswordHasher passwordHasher,
-    IPublishEndpoint publishEndpoint,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<ConfirmEmailCommand, BaseResponse>
+    IPublishEndpoint publisher,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<ConfirmEmailCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(ConfirmEmailCommand request, CancellationToken cancellationToken)
     {
         var hashedCode = await cacheService.GetAsync(request.Email, cancellationToken);
 
         if (hashedCode is null)
         {
-            return BaseResponse.Conflict("Confirmation time was expired");
+            return ApiResponse.Conflict("Confirmation time was expired");
         }
         
         if (!passwordHasher.Verify(request.Code, hashedCode))
         {
-            return BaseResponse.BadRequest("Invalid code");
+            return ApiResponse.BadRequest("Invalid code");
         }
         
         await cacheService.RemoveAsync(request.Email, cancellationToken);
         await OnEmailConfirmed(request.Email, cancellationToken);
         
-        return BaseResponse.Ok();
+        return ApiResponse.Ok();
     }
 
     private async Task OnEmailConfirmed(string email, CancellationToken cancellationToken)
     {
-        await publishEndpoint.Publish(
+        await publisher.Publish(
             new EmailConfirmedEvent
             {
                 CorrelationId = Guid.NewGuid(),

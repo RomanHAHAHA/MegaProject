@@ -10,9 +10,8 @@ public class GetUserCartQueryHandler(
 {
     public async Task<CartDto> Handle(GetUserCartQuery request, CancellationToken cancellationToken)
     {
-        var cartItems = await cartsRepository.GetUserCartByIdAsync(
-            request.UserId, 
-            cancellationToken);
+        var cartItems = await cartsRepository
+            .GetUserCartByIdAsync(request.UserId, cancellationToken);
 
         return new CartDto
         {

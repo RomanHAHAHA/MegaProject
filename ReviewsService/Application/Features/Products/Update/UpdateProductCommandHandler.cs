@@ -1,31 +1,66 @@
-﻿using MediatR;
+﻿using Common.Application.Options;
+using Common.Infrastructure.Messaging.Events.Product;
+using MassTransit;
+using MediatR;
+using Microsoft.Extensions.Options;
 using ReviewsService.Domain.Interfaces;
+using ReviewsService.Infrastructure.Persistence;
 
 namespace ReviewsService.Application.Features.Products.Update;
 
 public class UpdateProductCommandHandler(
     IProductsRepository productRepository,
-    ILogger<UpdateProductCommandHandler> logger) : IRequestHandler<UpdateProductCommand>
+    IPublishEndpoint publisher,
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<UpdateProductCommand>
 {
     public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = await productRepository.GetByIdAsync(request.Id, cancellationToken);
+        var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
 
         if (product is null)
         {
-            logger.LogInformation($"Product with id: {request.Id} was not found");
+            await OnProductUpdated(request, cancellationToken);
             return;
         }
         
         product.Name = request.Name;
         product.Price = request.Price;
+
+        try
+        {
+            await OnProductUpdated(request, cancellationToken);
+        }
+        catch
+        {
+            await OnProductUpdateFailed(request, cancellationToken);
+        }
+    }
+
+    private async Task OnProductUpdated(UpdateProductCommand request, CancellationToken cancellationToken)
+    {
+        await publisher.Publish(
+            new ProductSnapshotUpdatedEvent
+            {
+                CorrelationId = request.CorrelationId,
+                SenderServiceName = serviceOptions.Value.Name,
+                UserId = request.UserId,
+                ProductId = request.ProductId,
+            },
+            cancellationToken);
         
-        var updated  = await productRepository.SaveChangesAsync(cancellationToken);
-        
-        var message = updated ? 
-            $"Failed to update product with id: {request.Id}" : 
-            $"Updated product with id: {request.Id}";
-        
-        logger.LogInformation(message);
+        await productRepository.SaveChangesAsync(cancellationToken);
+    }
+    
+    private async Task OnProductUpdateFailed(UpdateProductCommand request, CancellationToken cancellationToken)
+    {
+        await publisher.Publish(
+            new ProductSnapshotUpdateFailedEvent()
+            {
+                CorrelationId = request.CorrelationId,
+                SenderServiceName = serviceOptions.Value.Name,
+                ProductId = request.ProductId,
+            },
+            typeof(ReviewsDbContext),
+            cancellationToken);
     }
 }

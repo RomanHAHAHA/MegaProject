@@ -15,15 +15,15 @@ public class CreateReviewCommandHandler(
     IUsersRepository usersRepository,
     IProductsRepository productsRepository,
     IPublishEndpoint publisher,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<CreateReviewCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<CreateReviewCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
     {
         var userExist = await usersRepository.ExistsAsync(request.UserId, cancellationToken);
 
         if (!userExist)
         {
-            return BaseResponse.NotFound(nameof(UserSnapshot));
+            return ApiResponse.NotFound(nameof(UserSnapshot));
         }
         
         var productExist = await productsRepository
@@ -31,7 +31,7 @@ public class CreateReviewCommandHandler(
         
         if (!productExist)
         {
-            return BaseResponse.NotFound(nameof(ProductSnapshot));
+            return ApiResponse.NotFound(nameof(ProductSnapshot));
         }
         
         var review = Review.FromCreateDto(request.ReviewCreateDto, request.UserId);
@@ -41,18 +41,19 @@ public class CreateReviewCommandHandler(
         
         var created = await reviewsRepository.SaveChangesAsync(cancellationToken);
 
-        return created ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return created ? ApiResponse.Ok() : ApiResponse.InternalServerError();
     }
 
     private async Task OnReviewCreated(CreateReviewCommand request, CancellationToken cancellationToken)
     {
-        await publisher.Publish(new SystemActionEvent
-        {
-            CorrelationId = Guid.NewGuid(),
-            SenderServiceName = serviceOptions.Value.Name,
-            UserId = request.UserId,
-            ActionType = ActionType.Create,
-            Message = $"User {request.UserId} created review on product {request.ReviewCreateDto.ProductId}"
-        }, cancellationToken);
+        await publisher.Publish(
+            new SystemActionEvent
+            {
+                CorrelationId = Guid.NewGuid(),
+                SenderServiceName = serviceOptions.Value.Name,
+                UserId = request.UserId,
+                ActionType = ActionType.Create,
+                Message = $"User {request.UserId} created review on product {request.ReviewCreateDto.ProductId}"
+            }, cancellationToken);
     }
 }

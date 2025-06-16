@@ -1,19 +1,21 @@
-import { useNavigate, Outlet, useLocation } from "react-router-dom";
+import { useNavigate, Outlet, useLocation, NavLink } from "react-router-dom";
 import { useAuth } from "../AuthProvider";
 import styles from "../Styles/Profile.module.css";
 
 const Profile = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   const navItems = [
-    { label: "Own data", path: "/profile/avatar", icon: "bi-person" },
+    { label: "Profile", path: "/profile/avatar", icon: "bi-person", end: true },
+    { label: "My Orders", path: "/profile/my-orders", icon: "bi-cart" },
+    { label: "Reviews", path: "/profile/reviews", icon: "bi-star" },
     { label: "System Logs", path: "/profile/logs", icon: "bi-journal-text" },
   ];
 
@@ -22,22 +24,25 @@ const Profile = () => {
       <aside className={styles.sidebar}>
         <nav className={styles.navList}>
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || 
+                            (item.end && location.pathname.startsWith(item.path));
             return (
               <button
                 key={item.path}
-                className={`${styles.navItem} ${isActive ? styles.navItemActive : ""}`}
+                className={`${styles.navButton} ${isActive ? styles.navButtonActive : ''}`}
                 onClick={() => navigate(item.path)}
               >
                 <i className={`bi ${item.icon}`}></i>
-                {item.label}
+                <span>{item.label}</span>
+                <i className="bi bi-chevron-right"></i>
               </button>
             );
           })}
         </nav>
 
         <button className={styles.logoutButton} onClick={handleLogout}>
-          <i className="bi bi-box-arrow-right"></i> Log out
+          <i className="bi bi-box-arrow-right"></i>
+          <span>Log out</span>
         </button>
       </aside>
 

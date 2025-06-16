@@ -1,9 +1,11 @@
-﻿using Common.Domain.Abstractions;
+﻿using System.Data;
+using Common.Domain.Abstractions;
 using Common.Domain.Dtos;
 using Common.Domain.Extensions;
 using Common.Domain.Models.Results;
 using Microsoft.EntityFrameworkCore;
-using ProductsService.Application.Features.Products.GetPagedList;
+using Microsoft.EntityFrameworkCore.Storage;
+using ProductsService.Application.Features.Products.Queries.GetPagedList;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 
@@ -13,6 +15,14 @@ public class ProductsRepository(ProductsDbContext dbContext) :
     Repository<ProductsDbContext, Product, Guid>(dbContext),
     IProductsRepository
 {
+    public async Task<IDbContextTransaction> BeginTransactionAsync(
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+        CancellationToken cancellationToken = default)
+    {
+        return await AppDbContext.Database
+            .BeginTransactionAsync(isolationLevel, cancellationToken);
+    }
+    
     public async Task<PagedList<Product>> GetProductsAsync(
         ProductFilter productFilter,
         SortParams sortParams,

@@ -6,14 +6,14 @@ using UsersService.Domain.Interfaces;
 namespace UsersService.Application.Features.Users.GetById;
 
 public class GetUserByIdQueryHandler(IUsersRepository usersRepository) : 
-    IRequestHandler<GetUserByIdQuery, BaseResponse<User>>
+    IRequestHandler<GetUserByIdQuery, ApiResponse<User>>
 {
-    public async Task<BaseResponse<User>> Handle(
+    public async Task<ApiResponse<User>> Handle(
         GetUserByIdQuery request, 
         CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
             
-        return user ?? BaseResponse<User>.NotFound("User not found");
+        return user ?? ApiResponse<User>.NotFound("User not found");
     }
 }

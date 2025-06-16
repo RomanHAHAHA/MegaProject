@@ -12,7 +12,9 @@ public class Order : Entity<Guid>
 
     public UserSnapshot? User { get; set; }
 
-    public OrderStatus Status { get; set; }
+    public List<OrderStatusHistoryItem> Statuses { get; set; }
+    
+    public OrderStatus CurrentStatus { get; set; }
 
     public DeliveryLocation? DeliveryLocation { get; set; }
 
@@ -26,7 +28,7 @@ public class Order : Entity<Guid>
     public Order(Guid userId)
     {
         UserId = userId;
-        Status = OrderStatus.Processing;
+        ChangeStatus(OrderStatus.Processing);
     }
 
     public void AddDeliveryLocation(DeliveryLocationCreateDto deliveryLocation)
@@ -42,5 +44,18 @@ public class Order : Entity<Guid>
     public void AddOrderItems(List<CartItemDto> cartItems)
     {
         OrderItems.AddRange(cartItems.Select(cartItem => new OrderItem(UserId, cartItem)));
+    }
+
+    public void ChangeStatus(OrderStatus status)
+    {
+        Statuses =
+        [
+            new OrderStatusHistoryItem()
+            {
+                OrderId = Id,
+                Status = status,
+            }
+        ];
+        CurrentStatus = status;
     }
 }

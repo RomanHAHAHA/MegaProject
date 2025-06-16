@@ -3,4 +3,4 @@ using MediatR;
 
 namespace ProductsService.Application.Features.ProductImages.SetMain;
 
-public record SetMainImageCommand(Guid ImageId) : IRequest<BaseResponse>;
+public record SetMainImageCommand(Guid ImageId) : IRequest<ApiResponse>;

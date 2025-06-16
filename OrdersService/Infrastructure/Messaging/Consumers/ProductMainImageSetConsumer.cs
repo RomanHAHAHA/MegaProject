@@ -15,7 +15,7 @@ public class ProductMainImageSetConsumer(IServiceProvider serviceProvider) : ICo
         var @event = context.Message;
         var command = new SetMainProductImageCommand(
             @event.CorrelationId,
-            @event.CorrelationId,
+            @event.ProductId,
             @event.ImagePath);
         
         await mediator.Send(command, context.CancellationToken);

@@ -1,5 +1,7 @@
-﻿using Common.Domain.Abstractions;
+﻿using System.Data;
+using Common.Domain.Abstractions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
 
@@ -17,5 +19,12 @@ public class ProductImagesRepository(ProductsDbContext dbContext) :
             .Where(p => p.ProductId == productId)
             .OrderBy(i => i.CreatedAt)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IDbContextTransaction> BeginTransactionAsync(
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+        CancellationToken cancellationToken = default)
+    {
+        return await AppDbContext.Database.BeginTransactionAsync(isolationLevel, cancellationToken);
     }
 }

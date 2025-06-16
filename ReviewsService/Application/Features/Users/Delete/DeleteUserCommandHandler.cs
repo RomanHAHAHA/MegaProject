@@ -20,8 +20,7 @@ public class DeleteUserCommandHandler(
         usersRepository.Delete(user);
         var deleted = await usersRepository.SaveChangesAsync(cancellationToken);
         
-        var message = deleted ? 
-            "User deleted" : "Failed to delete user";
+        var message = deleted ? "User deleted" : "Failed to delete user";
         
         logger.LogInformation(message);
     }

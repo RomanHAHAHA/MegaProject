@@ -1,7 +1,9 @@
-﻿using Common.Domain.Dtos;
+﻿using System.Data;
+using Common.Domain.Dtos;
 using Common.Domain.Interfaces;
 using Common.Domain.Models.Results;
-using ProductsService.Application.Features.Products.GetPagedList;
+using Microsoft.EntityFrameworkCore.Storage;
+using ProductsService.Application.Features.Products.Queries.GetPagedList;
 using ProductsService.Domain.Entities;
 
 namespace ProductsService.Domain.Interfaces;
@@ -36,5 +38,9 @@ public interface IProductsRepository : IRepository<Product, Guid>
     
     Task<List<Product>> GetProductsByIdsAsync(
         List<Guid> productIds,
+        CancellationToken cancellationToken = default);
+
+    Task<IDbContextTransaction> BeginTransactionAsync(
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
         CancellationToken cancellationToken = default);
 }

@@ -4,12 +4,12 @@ using MediatR;
 namespace CartsService.Application.Features.Products.Delete;
 
 public class DeleteProductCommandHandler(
-    IProductRepository productRepository,
+    IProductsRepository productsRepository,
     ILogger<DeleteProductCommandHandler> logger) : IRequestHandler<DeleteProductCommand>
 {
     public async Task Handle(DeleteProductCommand request, CancellationToken cancellationToken)
     {
-        var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
+        var product = await productsRepository.GetByIdAsync(request.ProductId, cancellationToken);
 
         if (product is null)
         {
@@ -17,8 +17,8 @@ public class DeleteProductCommandHandler(
             return;
         }
         
-        productRepository.Delete(product);
-        var deleted  = await productRepository.SaveChangesAsync(cancellationToken);
+        productsRepository.Delete(product);
+        var deleted  = await productsRepository.SaveChangesAsync(cancellationToken);
         
         var message = deleted ? 
             $"Failed to delete product with id: {request.ProductId}" : 

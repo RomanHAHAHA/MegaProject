@@ -18,19 +18,6 @@ public class DeleteOrderCommandHandler(
         }
         
         ordersRepository.Delete(order);
-        
-        try
-        {
-            var deleted = await ordersRepository.SaveChangesAsync(cancellationToken);
-
-            if (!deleted)
-            {
-                logger.LogWarning($"Order {order.Id} was not deleted (no changes were saved).");
-            }
-        }
-        catch (Exception)
-        {
-            logger.LogError($"Failed to delete order {request.OrderId}.");
-        }
+        await ordersRepository.SaveChangesAsync(cancellationToken);
     }
 }

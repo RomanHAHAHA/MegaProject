@@ -6,9 +6,9 @@ using MediatR;
 namespace CartsService.Application.Features.CartItems.Decrement;
 
 public class DecrementItemQuantityCommandHandler(
-    ICartsRepository cartsRepository) : IRequestHandler<DecrementItemQuantityCommand, BaseResponse>
+    ICartsRepository cartsRepository) : IRequestHandler<DecrementItemQuantityCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(
+    public async Task<ApiResponse> Handle(
         DecrementItemQuantityCommand request, 
         CancellationToken cancellationToken)
     {
@@ -19,15 +19,13 @@ public class DecrementItemQuantityCommandHandler(
 
         if (cartItem is null)
         {
-            return BaseResponse.NotFound(nameof(CartItem));
+            return ApiResponse.NotFound(nameof(CartItem));
         }
         
         //TODO: logic if quantity is 0
         cartItem.Quantity--;
-        var updated = await cartsRepository.SaveChangesAsync(cancellationToken);
+        await cartsRepository.SaveChangesAsync(cancellationToken);
         
-        return updated ? 
-            BaseResponse.Ok() :
-            BaseResponse.InternalServerError("Failed to decrement item quantity");
+        return ApiResponse.Ok();
     }
 }

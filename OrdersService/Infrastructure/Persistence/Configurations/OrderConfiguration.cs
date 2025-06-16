@@ -12,7 +12,6 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         
         builder.HasKey(o => o.Id);
         builder.Property(o => o.UserId).IsRequired();
-        builder.Property(o => o.Status).IsRequired();
         builder.Property(o => o.CreatedAt).IsRequired();
         
         builder.HasIndex(o => o.UserId);
@@ -26,5 +25,9 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasMany(o => o.OrderItems)
             .WithOne(o => o.Order)
             .HasForeignKey(i => i.OrderId);
+        
+        builder.HasMany(o => o.Statuses)
+            .WithOne(h => h.Order)
+            .HasForeignKey(h => h.OrderId);
     }
 }

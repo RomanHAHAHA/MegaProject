@@ -4,5 +4,4 @@ namespace NotificationService.Application.Features.Product.NotifyProductCreation
 
 public record NotifyProductSnapshotCreationFailedCommand(
     Guid CorrelationId,
-    Guid ProductId,
     Guid UserId) : IRequest;

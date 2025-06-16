@@ -7,9 +7,9 @@ namespace UsersService.Application.Features.Users.GenerateToken;
 
 public class GenerateTokenCommandHandler(
     IUsersRepository usersRepository,
-    IJwtProvider jwtProvider) : IRequestHandler<GenerateTokenCommand, BaseResponse<string>>
+    IJwtProvider jwtProvider) : IRequestHandler<GenerateTokenCommand, ApiResponse<string>>
 {
-    public async Task<BaseResponse<string>> Handle(
+    public async Task<ApiResponse<string>> Handle(
         GenerateTokenCommand request, 
         CancellationToken cancellationToken)
     {
@@ -17,7 +17,7 @@ public class GenerateTokenCommandHandler(
 
         if (user is null)
         {
-            return BaseResponse<string>.NotFound(nameof(User));
+            return ApiResponse<string>.NotFound(nameof(User));
         }
         
         return await jwtProvider.GenerateTokenAsync(user, cancellationToken);

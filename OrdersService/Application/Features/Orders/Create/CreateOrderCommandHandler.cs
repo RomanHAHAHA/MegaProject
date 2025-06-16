@@ -1,4 +1,5 @@
-﻿using Common.Application.Options;
+﻿using System.Data;
+using Common.Application.Options;
 using Common.Domain.Dtos;
 using Common.Domain.Enums;
 using Common.Domain.Models.Results;
@@ -9,52 +10,52 @@ using MediatR;
 using Microsoft.Extensions.Options;
 using OrdersService.Domain.Entities;
 using OrdersService.Domain.Interfaces;
-using OrdersService.Infrastructure.Persistence;
 
 namespace OrdersService.Application.Features.Orders.Create;
 
 public class CreateOrderCommandHandler(
     IOrdersRepository ordersRepository,
     IUsersRepository usersRepository,
-    OrdersDbContext dbContext,
     IPublishEndpoint publishEndpoint,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<CreateOrderCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<CreateOrderCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
         if (request.CartItems.Count == 0)
         {
-            return BaseResponse.BadRequest("You must provide at least one item.");
+            return ApiResponse.BadRequest("You must provide at least one item.");
         }
         
         var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
 
         if (user is null)
         {
-            return BaseResponse.NotFound(nameof(UserSnapshot));
+            return ApiResponse.NotFound(nameof(UserSnapshot));
         }
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        
-        var order = new Order(request.UserId);
-        
-        await ordersRepository.CreateAsync(order, cancellationToken);
+        await using var transaction = await ordersRepository
+            .BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
 
-        order.AddDeliveryLocation(request.DeliveryLocationDto);
-        order.AddOrderItems(request.CartItems);
+        try
+        {
+            var order = new Order(request.UserId);
         
-        await OnOrderCreated(order, request.CartItems, cancellationToken);
+            await ordersRepository.CreateAsync(order, cancellationToken);
 
-        var saved = await ordersRepository.SaveChangesAsync(cancellationToken);
+            order.AddDeliveryLocation(request.DeliveryLocationDto);
+            order.AddOrderItems(request.CartItems);
+        
+            await OnOrderCreated(order, request.CartItems, cancellationToken);
 
-        if (!saved)
+            await ordersRepository.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return ApiResponse.Ok();
+        }
+        catch
         {
             await transaction.RollbackAsync(cancellationToken);
-            return BaseResponse.InternalServerError("Failed to create order");
+            return ApiResponse.InternalServerError();
         }
-
-        await transaction.CommitAsync(cancellationToken);
-        return BaseResponse.Ok();
     }
 
     private async Task OnOrderCreated(
@@ -65,14 +66,16 @@ public class CreateOrderCommandHandler(
         var correlationId = Guid.NewGuid();
         var serviceName = serviceOptions.Value.Name;
         
-        await publishEndpoint.Publish(new SystemActionEvent
-        {
-            CorrelationId = correlationId,
-            SenderServiceName = serviceName,
-            UserId = order.UserId,
-            ActionType = ActionType.Create,
-            Message = $"Order {order.Id} created"
-        }, cancellationToken);
+        await publishEndpoint.Publish(
+            new SystemActionEvent
+            {
+                CorrelationId = correlationId,
+                SenderServiceName = serviceName,
+                UserId = order.UserId,
+                ActionType = ActionType.Create,
+                Message = $"Order {order.Id} created"
+            }, 
+            cancellationToken);
         
         await publishEndpoint.Publish(
             new OrderCreatedEvent

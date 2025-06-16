@@ -1,21 +1,26 @@
 ﻿using Common.Domain.Models.Results;
 using MediatR;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using ProductsService.Domain.Dtos;
 using ProductsService.Domain.Entities;
-using ProductsService.Domain.Interfaces;
+using ProductsService.Infrastructure.Persistence;
 
 namespace ProductsService.Application.Features.ProductCharacteristics.Add;
 
 public class AddCharacteristicsCommandHandler(
-    IProductsRepository productsRepository) : IRequestHandler<AddCharacteristicsCommand, BaseResponse>
+    ProductsDbContext dbContext) : IRequestHandler<AddCharacteristicsCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(AddCharacteristicsCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(AddCharacteristicsCommand request, CancellationToken cancellationToken)
     {
-        var product = await productsRepository
-            .GetByIdWithCharacteristicsAsync(request.ProductId, cancellationToken);
-
-        if (product is null)
+        if (ListHasDuplicates(request.Characteristics))
         {
-            return BaseResponse.NotFound(nameof(Product));
+            return ApiResponse.BadRequest("Collection has duplicate names.");
+        }
+        
+        if (!await ProductExistsAsync(request.ProductId, cancellationToken))
+        {
+            return ApiResponse.NotFound(nameof(Product));
         }
         
         var characteristics = request.Characteristics
@@ -25,17 +30,32 @@ public class AddCharacteristicsCommandHandler(
                 Name = c.Name,
                 Value = c.Value
             }).ToList();
-
-        foreach (var characteristic in characteristics
-                .Where(characteristic => product.Characteristics
-                    .Any(c => c.Name == characteristic.Name)))
-        {
-            return BaseResponse.Conflict($"Characteristic \"{characteristic.Name}\" already exists");
-        }
         
-        product.Characteristics.AddRange(characteristics);
-        var added = await productsRepository.SaveChangesAsync(cancellationToken);
+        await dbContext.ProductCharacteristics.AddRangeAsync(characteristics, cancellationToken);
 
-        return added ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException e) when (e.InnerException is SqlException { Number: 2601 })
+        {
+            return ApiResponse.Conflict("Duplication of feature names is not possible");
+        }
+        catch (Exception)
+        {
+            return ApiResponse.InternalServerError();
+        }
+
+        return ApiResponse.Ok();
+    }
+
+    private bool ListHasDuplicates(List<ProductCharacteristicViewDto> characteristics)
+    {
+        return characteristics.GroupBy(c => c.Name).Any(g => g.Count() > 1);
+    }
+
+    private async Task<bool> ProductExistsAsync(Guid productId, CancellationToken cancellationToken)
+    {
+        return await dbContext.Products.AnyAsync(p => p.Id == productId, cancellationToken);
     }
 }

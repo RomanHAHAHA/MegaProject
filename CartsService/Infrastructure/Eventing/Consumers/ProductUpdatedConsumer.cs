@@ -15,6 +15,8 @@ public class ProductUpdatedConsumer(IServiceProvider serviceProvider) : IConsume
         var @event = context.Message;
         var command = new UpdateProductCommand(
             @event.CorrelationId,
+            @event.ProductId,
+            @event.UserId,
             @event.Name,
             @event.Price);
         

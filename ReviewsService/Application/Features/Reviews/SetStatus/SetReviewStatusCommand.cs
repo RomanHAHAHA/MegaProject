@@ -7,4 +7,4 @@ namespace ReviewsService.Application.Features.Reviews.SetStatus;
 public record SetReviewStatusCommand(
     Guid UserId,
     Guid ProductId,
-    ReviewStatus Status) : IRequest<BaseResponse>;
+    ReviewStatus Status) : IRequest<ApiResponse>;

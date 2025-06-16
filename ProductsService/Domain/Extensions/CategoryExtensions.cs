@@ -1,4 +1,4 @@
-﻿using ProductsService.Application.Features.Categories.Common;
+﻿using ProductsService.Application.Common.Dtos;
 using ProductsService.Domain.Entities;
 
 namespace ProductsService.Domain.Extensions;

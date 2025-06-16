@@ -1,7 +1,7 @@
 ﻿using Common.Infrastructure.Messaging.Events.Review;
 using MassTransit;
 using MediatR;
-using ProductsService.Application.Features.Products.UpdateProductRating;
+using ProductsService.Application.Features.Products.Commands.UpdateProductRating;
 using ProductsService.Domain.Interfaces;
 
 namespace ProductsService.Infrastructure.Messaging.Consumers;

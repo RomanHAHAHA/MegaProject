@@ -13,6 +13,8 @@ public class OrderItem
 
     public ProductSnapshot? Product { get; set; }
 
+    public decimal FixedPrice { get; set; }
+
     public int Quantity { get; set; }
 
     public OrderItem() { }
@@ -21,6 +23,7 @@ public class OrderItem
     {
         OrderId = orderId;
         ProductId = cartItem.Product.Id;
+        FixedPrice = cartItem.Product.Price;
         Quantity = cartItem.Quantity;
     }
 }

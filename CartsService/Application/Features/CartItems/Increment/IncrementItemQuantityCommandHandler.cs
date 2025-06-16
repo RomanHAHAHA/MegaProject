@@ -12,9 +12,9 @@ namespace CartsService.Application.Features.CartItems.Increment;
 public class IncrementItemQuantityCommandHandler(
     ICartsRepository cartsRepository,
     IPublishEndpoint publisher,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<IncrementItemQuantityCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<IncrementItemQuantityCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(IncrementItemQuantityCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(IncrementItemQuantityCommand request, CancellationToken cancellationToken)
     {
         var cartItem = await cartsRepository.GetByIdAsync(
             request.UserId,
@@ -23,15 +23,15 @@ public class IncrementItemQuantityCommandHandler(
 
         if (cartItem is null)
         {
-            return BaseResponse.NotFound(nameof(CartItem));
+            return ApiResponse.NotFound(nameof(CartItem));
         }
         
         cartItem.Quantity++;
         await OnProductQuantityIncremented(cartItem, cancellationToken);
         
-        var updated = await cartsRepository.SaveChangesAsync(cancellationToken);
+        await cartsRepository.SaveChangesAsync(cancellationToken);
 
-        return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return ApiResponse.Ok();
     }
 
     private async Task OnProductQuantityIncremented(CartItem cartItem, CancellationToken cancellationToken)

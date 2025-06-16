@@ -1,11 +1,14 @@
-﻿using Common.Domain.Entities;
-using OrdersService.Domain.Entities;
+﻿namespace OrdersService.Domain.Dtos;
 
-namespace OrdersService.Domain.Dtos;
-
-public class OrderItemDto(OrderItem orderItem)
+public class OrderItemDto
 {
-    public ProductSnapshot Product { get; set; } = orderItem.Product!;
+    public required Guid ProductId { get; init; }
+    
+    public required string Name { get; init; }
+    
+    public required string MainImagePath { get; init; }
 
-    public int Quantity { get; set; } = orderItem.Quantity;
+    public required decimal FixedPrice { get; init; }
+    
+    public required int Quantity { get; init; }
 }

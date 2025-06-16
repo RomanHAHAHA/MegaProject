@@ -5,25 +5,21 @@ using MediatR;
 
 namespace LogsService.Application.Features.ActionLogs.DeleteLog;
 
-public class DeleteActionLogCommandHandler(ILogsRepository logsRepository) : 
-    IRequestHandler<DeleteActionLogCommand, BaseResponse>
+public class DeleteActionLogCommandHandler(
+    ILogsRepository logsRepository) : IRequestHandler<DeleteActionLogCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(
-        DeleteActionLogCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(DeleteActionLogCommand request, CancellationToken cancellationToken)
     {
         var actionLog = await logsRepository.GetByIdAsync(request.ActionLogId, cancellationToken);
 
         if (actionLog is null)
         {
-            return BaseResponse.NotFound(nameof(ActionLog));
+            return ApiResponse.NotFound(nameof(ActionLog));
         }
         
         logsRepository.Delete(actionLog);
-        var deleted = await logsRepository.SaveChangesAsync(cancellationToken);
+        await logsRepository.SaveChangesAsync(cancellationToken);
         
-        return deleted ?
-            BaseResponse.Ok() :
-            BaseResponse.InternalServerError("Failed to delete action log");
+        return ApiResponse.Ok();
     }
 }

@@ -1,10 +1,12 @@
 ﻿using Common.Application.Options;
 using Common.Infrastructure.Messaging.Events.User;
+using Common.Infrastructure.Messaging.Publishers;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Options;
 using ReviewsService.Domain.Entities;
 using ReviewsService.Domain.Interfaces;
+using ReviewsService.Infrastructure.Persistence;
 
 namespace ReviewsService.Application.Features.Users.Create;
 
@@ -15,22 +17,21 @@ public class CreateUserCommandHandler(
 {
     public async Task Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        var user = new UserSnapshot
-        {
-            Id = request.UserId,
-            NickName = request.NickName,
-        };
-
+        await usersRepository.CreateAsync(
+            new UserSnapshot
+            {
+                Id = request.UserId,
+                NickName = request.NickName,
+            }, 
+            cancellationToken);
+        
         try
         {
-            await usersRepository.CreateAsync(user, cancellationToken);
             await OnUserCreated(request, cancellationToken);
-            await usersRepository.SaveChangesAsync(cancellationToken);
         }
         catch (Exception)
         {
             await OnUserCreationFailed(request, cancellationToken);
-            await usersRepository.SaveChangesAsync(cancellationToken);
         }
     }
 
@@ -45,11 +46,13 @@ public class CreateUserCommandHandler(
                 ConnectionId = request.ConnectionId,
             },
             cancellationToken);
+        
+        await usersRepository.SaveChangesAsync(cancellationToken);
     }
     
     private async Task OnUserCreationFailed(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        await publisher.Publish(
+        await publisher.PublishInIsolatedScopeAsync<ReviewsDbContext>(
             new UserSnapshotCreationFailedEvent
             {
                 CorrelationId = request.CorrelationId,

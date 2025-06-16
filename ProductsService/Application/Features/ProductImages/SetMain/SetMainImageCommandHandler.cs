@@ -6,50 +6,42 @@ using MediatR;
 using Microsoft.Extensions.Options;
 using ProductsService.Domain.Entities;
 using ProductsService.Domain.Interfaces;
-using ProductsService.Infrastructure.Persistence;
 
 namespace ProductsService.Application.Features.ProductImages.SetMain;
 
 public class SetMainImageCommandHandler(
     IProductImagesRepository imagesRepository,
-    ProductsDbContext dbContext,
     IPublishEndpoint publishEndpoint,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<SetMainImageCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<SetMainImageCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(SetMainImageCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(SetMainImageCommand request, CancellationToken cancellationToken)
     {
         var newMainImage = await imagesRepository.GetByIdAsync(request.ImageId, cancellationToken);
 
         if (newMainImage is null)
         {
-            return BaseResponse.NotFound("Image not found");
+            return ApiResponse.NotFound("Image not found");
         }
         
-        newMainImage.IsMain = true;
-        
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        
-        await imagesRepository.SaveChangesAsync(cancellationToken);
-        
-        var productImages = await imagesRepository
-            .GetProductImagesAsync(newMainImage.ProductId, cancellationToken);
-
+        var productImages = await imagesRepository.GetProductImagesAsync(newMainImage.ProductId, cancellationToken);
         var pastMainImage = productImages.FirstOrDefault(i => i.IsMain && i.Id != request.ImageId);
 
         if (pastMainImage is null)
         {
-            await transaction.RollbackAsync(cancellationToken);
-            return BaseResponse.NotFound("Failed to find past main image");
+            return ApiResponse.NotFound("Failed to find past main image");
         }
         
+        await using var transaction = await imagesRepository.BeginTransactionAsync(cancellationToken: cancellationToken);
+
         pastMainImage.IsMain = false;
+        newMainImage.IsMain = true;
 
         await OnMainImageSet(newMainImage, cancellationToken);
         
         await imagesRepository.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
             
-        return BaseResponse.Ok();
+        return ApiResponse.Ok();
     }
 
     

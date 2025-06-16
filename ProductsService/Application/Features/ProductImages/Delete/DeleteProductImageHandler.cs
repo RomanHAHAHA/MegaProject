@@ -4,79 +4,82 @@ using Common.Domain.Models.Results;
 using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using ProductsService.Application.Features.ProductImages.Create;
 using ProductsService.Domain.Entities;
-using ProductsService.Domain.Interfaces;
 using ProductsService.Infrastructure.Persistence;
 
 namespace ProductsService.Application.Features.ProductImages.Delete;
 
 public class DeleteProductImageHandler(
-    IProductImagesRepository imagesRepository,
+    ProductsDbContext dbContext,
     IFileStorageService fileStorageService,
     IPublishEndpoint publishEndpoint,
     IOptions<ServiceOptions> serviceOptions,
-    ProductsDbContext dbContext) : IRequestHandler<DeleteProductImage, BaseResponse>
+    IOptions<ProductImagesOptions> imagesOptions) : IRequestHandler<DeleteProductImage, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(DeleteProductImage request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(DeleteProductImage request, CancellationToken cancellationToken)
     {
-        var image = await imagesRepository.GetByIdAsync(request.ImageId, cancellationToken);
+        var image = await dbContext.ProductImages
+            .FirstOrDefaultAsync(i => i.Id == request.ImageId, cancellationToken);
 
         if (image is null)
         {
-            return BaseResponse.NotFound("Product image");
+            return ApiResponse.NotFound("Product image");
         }
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
-        
-        imagesRepository.Delete(image);
-        await imagesRepository.SaveChangesAsync(cancellationToken);
+        dbContext.ProductImages.Remove(image);
 
-        var deleteFileResult = await fileStorageService.DeleteFileAsync(
-            image.ImagePath,
-            cancellationToken);
+        var imagePath = Path.Combine(imagesOptions.Value.Path, image.ImagePath);
+        var deleteFileResult = await fileStorageService.DeleteFileAsync(imagePath, cancellationToken);
 
         if (deleteFileResult.IsFailure)
         {
-            await transaction.RollbackAsync(cancellationToken);
-            return BaseResponse.InternalServerError("Failed to delete image from file system");
+            return ApiResponse.InternalServerError("Failed to delete image from file system");
         }
 
         if (image.IsMain)
         {
-            await SetNewMainImageAsync(image.ProductId, cancellationToken);
+            await SetNewMainImageAsync(image, cancellationToken);
         }
         
-        await imagesRepository.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
         
-        return BaseResponse.Ok();
+        return ApiResponse.Ok();
     }
     
-    private async Task SetNewMainImageAsync(Guid productId, CancellationToken cancellationToken)
+    private async Task SetNewMainImageAsync(ProductImage pastMainImage, CancellationToken cancellationToken)
     {
-        var images = await imagesRepository.GetProductImagesAsync(productId, cancellationToken);
-        var newMainImage = images.FirstOrDefault();
+        var newMainImage = await dbContext.ProductImages
+            .FirstOrDefaultAsync(i => 
+                    i.ProductId == pastMainImage.ProductId && 
+                    i.Id != pastMainImage.Id,
+                cancellationToken);
 
         if (newMainImage is null)
         {
-            return; 
+            await OnMainImageSet(pastMainImage.ProductId, string.Empty, cancellationToken);
+            return;
         }
 
         newMainImage.IsMain = true;
         
-        await OnMainImageSet(newMainImage, cancellationToken);
+        await OnMainImageSet(newMainImage.ProductId, newMainImage.ImagePath, cancellationToken);
     }
     
-    private async Task OnMainImageSet(ProductImage image, CancellationToken cancellationToken)
+    private async Task OnMainImageSet(
+        Guid productId,
+        string imageName, 
+        CancellationToken cancellationToken)
     {
         await publishEndpoint.Publish(
             new ProductMainImageSetEvent
             {
                 CorrelationId = Guid.NewGuid(),
                 SenderServiceName = serviceOptions.Value.Name,
-                ProductId = image.ProductId,
-                ImagePath = image.ImagePath
+                ProductId = productId,
+                ImagePath = imageName
             }, 
             cancellationToken);
     }

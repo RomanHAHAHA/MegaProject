@@ -8,4 +8,4 @@ public record SetReviewVoteCommand(
     Guid CurrentUserId, 
     Guid ReviewUserId,
     Guid ReviewProductId,
-    VoteType VoteType) : IRequest<BaseResponse>;
+    VoteType VoteType) : IRequest<ApiResponse>;

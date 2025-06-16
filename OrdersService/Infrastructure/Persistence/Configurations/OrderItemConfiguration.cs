@@ -14,6 +14,7 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         
         builder.Property(oi => oi.OrderId).IsRequired();
         builder.Property(oi => oi.ProductId).IsRequired();
+        builder.Property(oi => oi.FixedPrice).IsRequired();
         builder.Property(oi => oi.Quantity).IsRequired();
         
         builder.HasIndex(oi => oi.OrderId);

@@ -23,12 +23,11 @@ public class ConfirmOrderProcessingCommandHandler(
             return;
         }
 
+        order.ChangeStatus(OrderStatus.Confirmed);
+        
         try
         {
-            order.Status = OrderStatus.Confirmed;
             await OnOrderProcessed(order.UserId, cancellationToken);
-        
-            await ordersRepository.SaveChangesAsync(cancellationToken);
         }
         catch (Exception e)
         {
@@ -47,5 +46,7 @@ public class ConfirmOrderProcessingCommandHandler(
                 UserId = userId,
             }, 
             cancellationToken);
+        
+        await ordersRepository.SaveChangesAsync(cancellationToken);
     }
 }

@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
-import Swal from 'sweetalert2'; 
+import { Link, useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../apiConfig';
 import { useSignalR } from "../SignalRProvider";
-import { useNavigate } from 'react-router-dom';
-
-const registerUrl = `${API_BASE_URL}users-api/api/accounts/register`;
+import Swal from 'sweetalert2';
 
 const Register = () => {
   const { connection, connectionId } = useSignalR();
@@ -16,65 +14,76 @@ const Register = () => {
     passwordConfirm: '',
     connectionId: connectionId
   });
-
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value,
-    });
+    }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const response = await fetch(registerUrl, {
+      const response = await fetch(`${API_BASE_URL}users-api/api/accounts/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          NickName: formData.nickName,
+          Email: formData.email,
+          Password: formData.password,
+          PasswordConfirm: formData.passwordConfirm,
+          ConnectionId: formData.connectionId
+        }),
       });
+
       if (response.ok) {
-          return;
+        return;
+      }
+
+      const error = await response.json();
+      if (response.status === 409) {
+        showError('Conflict', error.description);
       } else {
-        const error = await response.json();
-        if (response.status === 409) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Conflict',
-            text: error.description,
-          });
-        } else {
-          const validationErrors = {};
-
-          for (const field in error.errors) {
-            if (error.errors[field] && error.errors[field].length > 0) {
-              validationErrors[field] = error.errors[field][0];
-            }
+        const validationErrors = {};
+        for (const field in error.errors) {
+          if (error.errors[field]?.length > 0) {
+            validationErrors[field.toLowerCase()] = error.errors[field][0];
           }
-
-          setErrors(validationErrors);
+        }
+        setErrors(validationErrors);
         
-          if (validationErrors["ConnectionId"]){
-            Swal.fire({
-              icon: 'error',
-              title: 'Server Error',
-              text: 'An internal server error occurred. Please try again later.',
-            });      
-          }
+        if (validationErrors["connectionid"]) {
+          showError('Server Error', 'An internal server error occurred. Please try again later.');
         }
       }
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Server Error',
-        text: 'An internal server error occurred. Please try again later.',
-      });
+      showError('Server Error', 'An internal server error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const showError = (title, text) => {
+    Swal.fire({
+      icon: 'error',
+      title,
+      text,
+      background: '#1a1a2e',
+      color: '#ffffff',
+      confirmButtonColor: '#4ecca3',
+      timer: 3000
+    });
   };
 
   useEffect(() => {
@@ -84,77 +93,112 @@ const Register = () => {
   }, [connectionId]);
 
   useEffect(() => {
-    if(!connection) return;
+    if (!connection) return;
     connection.on("NotifyUserRegistered", () => {
       setErrors({});
-      navigate("/confirm-email", { state: { email: formData.email } })
+      navigate("/confirm-email", { state: { email: formData.email } });
     });
-  }, [connection, formData.email]);
+  }, [connection, formData.email, navigate]);
 
   return (
-    <div className="container mt-5" style={{ maxWidth: '400px' }}>
-      <h2 className="text-center mb-4 text-light">Register</h2>
-      <form onSubmit={handleSubmit} className="p-4 border rounded-3 bg-dark shadow-sm">
-        <div className="mb-3">
-          <label htmlFor="nickName" className="form-label text-light">Nickname</label>
-          <input
-            type="text"
-            id="nickName"
-            name="nickName"
-            className={`form-control ${errors['NickName'] ? 'is-invalid' : 'bg-secondary text-light border-0'}`}
-            value={formData.nickName}
-            onChange={handleChange}
-            style={{ backgroundColor: '#343a40' }}
-          />
-          {errors['NickName'] && <div className="invalid-feedback">{errors['NickName']}</div>}
+    <div className="d-flex justify-content-center align-items-center min-vh-100">
+      <div className="w-100" style={{ maxWidth: '420px', marginTop: '-10vh' }}>
+        <div className="text-center mb-4">
+          <h2 className="text-light mb-2" style={{ color: '#4ecca3' }}>Create Account</h2>
+          <p className="text-light">Join us today</p>
         </div>
-  
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label text-light">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            className={`form-control ${errors['Email'] ? 'is-invalid' : 'bg-secondary text-light border-0'}`}
-            value={formData.email}
-            onChange={handleChange}
-            style={{ backgroundColor: '#343a40' }}
-          />
-          {errors['Email'] && <div className="invalid-feedback">{errors['Email']}</div>}
+        
+        <form onSubmit={handleSubmit} className="p-4 rounded-3 bg-dark shadow" style={{ border: '1px solid #2c2c3a' }}>
+          <div className="mb-3">
+            <label htmlFor="nickName" className="form-label text-light">Nickname</label>
+            <input
+              type="text"
+              id="nickName"
+              name="nickName"
+              className={`form-control ${errors.nickname ? 'is-invalid bg-dark text-light' : 'bg-dark text-light border-secondary'}`}
+              value={formData.nickName}
+              onChange={handleChange}
+              placeholder="Enter your nickname"
+            />
+            {errors.nickname && <div className="invalid-feedback d-block mt-1">{errors.nickname}</div>}
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="email" className="form-label text-light">Email Address</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className={`form-control ${errors.email ? 'is-invalid bg-dark text-light' : 'bg-dark text-light border-secondary'}`}
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+            />
+            {errors.email && <div className="invalid-feedback d-block mt-1">{errors.email}</div>}
+          </div>
+
+          <div className="mb-3">
+            <label htmlFor="password" className="form-label text-light">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              className={`form-control ${errors.password ? 'is-invalid bg-dark text-light' : 'bg-dark text-light border-secondary'}`}
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Create a password"
+            />
+            {errors.password && <div className="invalid-feedback d-block mt-1">{errors.password}</div>}
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="passwordConfirm" className="form-label text-light">Confirm Password</label>
+            <input
+              type="password"
+              id="passwordConfirm"
+              name="passwordConfirm"
+              className={`form-control ${errors.passwordconfirm ? 'is-invalid bg-dark text-light' : 'bg-dark text-light border-secondary'}`}
+              value={formData.passwordConfirm}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+            />
+            {errors.passwordconfirm && <div className="invalid-feedback d-block mt-1">{errors.passwordconfirm}</div>}
+          </div>
+
+          <button 
+            type="submit" 
+            className="btn w-100 py-2 mb-3" 
+            disabled={isSubmitting}
+            style={{ 
+              backgroundColor: '#4ecca3',
+              border: 'none',
+              fontWeight: 600
+            }}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Creating account...
+              </>
+            ) : 'Sign Up'}
+          </button>
+        </form>
+
+        <div className="mt-4 text-center">
+          <p className="text-light">
+            Already have an account?{" "}
+            <Link 
+              to="/login" 
+              className="text-decoration-none fw-bold"
+              style={{ color: '#4ecca3' }}
+            >
+              Sign in
+            </Link>
+          </p>
         </div>
-  
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label text-light">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            className={`form-control ${errors['Password'] ? 'is-invalid' : 'bg-secondary text-light border-0'}`}
-            value={formData.password}
-            onChange={handleChange}
-            style={{ backgroundColor: '#343a40' }}
-          />
-          {errors['Password'] && <div className="invalid-feedback">{errors['Password']}</div>}
-        </div>
-  
-        <div className="mb-3">
-          <label htmlFor="passwordConfirm" className="form-label text-light">Confirm Password</label>
-          <input
-            type="password"
-            id="passwordConfirm"
-            name="passwordConfirm"
-            className={`form-control ${errors['PasswordConfirm'] ? 'is-invalid' : 'bg-secondary text-light border-0'}`}
-            value={formData.passwordConfirm}
-            onChange={handleChange}
-            style={{ backgroundColor: '#343a40' }}
-          />
-          {errors['PasswordConfirm'] && <div className="invalid-feedback">{errors['PasswordConfirm']}</div>}
-        </div>
-  
-        <button type="submit" className="btn btn-primary w-100">Register</button>
-      </form>
+      </div>
     </div>
-  );  
+  );
 };
 
-export default Register
+export default Register;

@@ -6,4 +6,4 @@ namespace ProductsService.Application.Features.ProductCharacteristics.Add;
 
 public record AddCharacteristicsCommand(
     Guid ProductId,
-    List<ProductCharacteristicDto> Characteristics) : IRequest<BaseResponse>;
+    List<ProductCharacteristicViewDto> Characteristics) : IRequest<ApiResponse>;

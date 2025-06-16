@@ -1,48 +1,75 @@
 ﻿using CartsService.Domain.Entities;
 using CartsService.Domain.Interfaces;
+using CartsService.Infrastructure.Persistence;
 using Common.Domain.Models.Results;
 using MediatR;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace CartsService.Application.Features.CartItems.Create;
 
 public class AddProductToCartCommandHandler(
-    ICartsRepository cartsRepository,
-    IProductRepository productRepository) : IRequestHandler<AddProductToCartCommand, BaseResponse>
+    CartsDbContext dbContext) : IRequestHandler<AddProductToCartCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(AddProductToCartCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(AddProductToCartCommand request, CancellationToken cancellationToken)
     {
-        var product = await productRepository.GetByIdAsync(request.ProductId, cancellationToken);
+        var product = await GetProductSnapshotAsync(request.ProductId, cancellationToken);
 
         if (product is null)
         {
-            return BaseResponse.NotFound(nameof(ProductSnapshot));
+            return ApiResponse.NotFound(nameof(ProductSnapshot));
         }
 
         if (request.UserId == product.SellerId)
         {
-            return BaseResponse.BadRequest("You cannot add your own product to cart");
+            return ApiResponse.BadRequest("You cannot add your own product to cart");
         }
-        
-        var cartItem = await cartsRepository.GetByIdAsync(
-            request.UserId,
-            request.ProductId,
-            cancellationToken);
 
-        if (cartItem is not null)
+        if (await IsProductAlreadyInCartAsync(request.ProductId, request.UserId, cancellationToken))
         {
-            return BaseResponse.Conflict("Product is already in cart exists");
+            return ApiResponse.Conflict("Product is already in cart exists");
         }
         
-        cartItem = new CartItem
+        await AddProductToUserCartAsync(request.ProductId, request.UserId, cancellationToken);
+
+        return ApiResponse.Ok();
+    }
+
+    
+    private async Task<ProductSnapshot?> GetProductSnapshotAsync(
+        Guid productId, 
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.ProductSnapshots
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == productId, cancellationToken);
+    }
+    
+    private async Task<bool> IsProductAlreadyInCartAsync(
+        Guid productId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.CartItems
+            .AnyAsync(
+                ci => ci.ProductId == productId && ci.UserId == userId,
+                cancellationToken);
+    }
+    
+    private async Task AddProductToUserCartAsync(
+        Guid productId, 
+        Guid userId, 
+        CancellationToken cancellationToken = default)
+    {
+        var newCartItem = new CartItem
         {
-            UserId = request.UserId,
-            ProductId = request.ProductId,
-            Quantity = 1,
+            UserId = userId,
+            ProductId = productId,
+            Quantity = 1
         };
 
-        await cartsRepository.CreateAsync(cartItem, cancellationToken);
-        var created = await cartsRepository.SaveChangesAsync(cancellationToken);
-
-        return created ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        await dbContext.CartItems.AddAsync(newCartItem, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

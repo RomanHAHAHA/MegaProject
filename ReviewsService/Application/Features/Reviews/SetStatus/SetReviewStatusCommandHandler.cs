@@ -16,9 +16,9 @@ public class SetReviewStatusCommandHandler(
     IReviewsRepository reviewsRepository,
     IPublishEndpoint publisher,
     IHttpUserContext httpContext,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<SetReviewStatusCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<SetReviewStatusCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(SetReviewStatusCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(SetReviewStatusCommand request, CancellationToken cancellationToken)
     {
         var review = await reviewsRepository.GetByIdAsync(
             request.UserId,
@@ -27,7 +27,7 @@ public class SetReviewStatusCommandHandler(
 
         if (review is null)
         {
-            return BaseResponse.NotFound(nameof(Review));
+            return ApiResponse.NotFound(nameof(Review));
         }
         
         review.Status = request.Status;
@@ -35,7 +35,7 @@ public class SetReviewStatusCommandHandler(
         
         var updated = await reviewsRepository.SaveChangesAsync(cancellationToken);
         
-        return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return updated ? ApiResponse.Ok() : ApiResponse.InternalServerError();
     }
 
     private async Task OnReviewStatusSet(SetReviewStatusCommand request, CancellationToken cancellationToken)
@@ -45,14 +45,15 @@ public class SetReviewStatusCommandHandler(
         var reviewUserId = request.UserId;
         var reviewProductId = request.ProductId;
         
-        await publisher.Publish(new SystemActionEvent
-        {
-            CorrelationId = correlationId,
-            SenderServiceName = serviceName,
-            UserId = httpContext.UserId,
-            ActionType = ActionType.Update,
-            Message = $"Review of user {reviewUserId} on product {reviewProductId} status set: {request.Status}",
-        }, cancellationToken);
+        await publisher.Publish(
+            new SystemActionEvent
+            {
+                CorrelationId = correlationId,
+                SenderServiceName = serviceName,
+                UserId = httpContext.UserId,
+                ActionType = ActionType.Update,
+                Message = $"Review of user {reviewUserId} on product {reviewProductId} status set: {request.Status}",
+            }, cancellationToken);
         
         await publisher.Publish(
             new ReviewStatusUpdatedEvent

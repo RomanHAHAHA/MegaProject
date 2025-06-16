@@ -1,12 +1,10 @@
-﻿using OrdersService.Domain.Entities;
+﻿namespace OrdersService.Domain.Dtos;
 
-namespace OrdersService.Domain.Dtos;
-
-public class DeliveryLocationDto(DeliveryLocation deliveryLocation)
+public class DeliveryLocationDto
 {
-    public string Region { get; set; } = deliveryLocation.Region;
+    public required string Region { get; init; }
     
-    public string City { get; set; } = deliveryLocation.City;
+    public required string City { get; init; }
     
-    public string Warehouse { get; set; } = deliveryLocation.Warehouse;
+    public required string Warehouse { get; init; }
 }

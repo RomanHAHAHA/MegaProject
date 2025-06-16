@@ -8,4 +8,4 @@ namespace OrdersService.Application.Features.Orders.Create;
 public record CreateOrderCommand(
     Guid UserId,
     DeliveryLocationCreateDto DeliveryLocationDto,
-    List<CartItemDto> CartItems) : IRequest<BaseResponse>;
+    List<CartItemDto> CartItems) : IRequest<ApiResponse>;

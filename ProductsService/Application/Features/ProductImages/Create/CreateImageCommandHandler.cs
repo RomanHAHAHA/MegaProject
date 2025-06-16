@@ -15,15 +15,15 @@ public class CreateImageCommandHandler(
     IFileStorageService fileStorageService,
     IOptions<ProductImagesOptions> productImagesOptions,
     IOptions<ServiceOptions> serviceOptions,
-    IPublishEndpoint publishEndpoint) : IRequestHandler<AddImagesCommand, BaseResponse>
+    IPublishEndpoint publishEndpoint) : IRequestHandler<AddImagesCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(AddImagesCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(AddImagesCommand request, CancellationToken cancellationToken)
     {
         var product = await productsRepository.GetByIdWithImagesAsync(request.ProductId, cancellationToken);
 
         if (product is null)
         {
-            return BaseResponse.NotFound(nameof(Product));
+            return ApiResponse.NotFound(nameof(Product));
         }
 
         var images = new List<ProductImage>();
@@ -37,7 +37,7 @@ public class CreateImageCommandHandler(
 
             if (result.IsFailure)
             {
-                return BaseResponse.BadRequest(result.Error);
+                return ApiResponse.BadRequest(result.Error);
             }
 
             var isMain = i == 0 && product.Images.Count == 0;
@@ -57,9 +57,9 @@ public class CreateImageCommandHandler(
         }
         
         product.Images.AddRange(images);
-        var created = await productsRepository.SaveChangesAsync(cancellationToken);
+        await productsRepository.SaveChangesAsync(cancellationToken);
 
-        return created ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return ApiResponse.Ok();
     }
 
     private async Task OnMainImageSet(ProductImage image, CancellationToken cancellationToken = default)

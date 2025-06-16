@@ -3,4 +3,4 @@ using MediatR;
 
 namespace UsersService.Application.Features.Users.GenerateToken;
 
-public record GenerateTokenCommand(Guid UserId) : IRequest<BaseResponse<string>>;
+public record GenerateTokenCommand(Guid UserId) : IRequest<ApiResponse<string>>;

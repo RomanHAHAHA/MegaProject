@@ -4,7 +4,7 @@ namespace ReviewsService.Domain.Interfaces;
 
 public interface IOrderServiceClient
 {
-    Task<BaseResponse<bool>> HasUserOrderedProductAsync(
+    Task<ApiResponse<bool>> HasUserOrderedProductAsync(
         Guid productId,
         CancellationToken cancellationToken = default);
 }

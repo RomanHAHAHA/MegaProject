@@ -5,4 +5,4 @@ namespace CartsService.Application.Features.CartItems.Decrement;
 
 public record DecrementItemQuantityCommand(
     Guid UserId,
-    Guid ProductId) : IRequest<BaseResponse>;
+    Guid ProductId) : IRequest<ApiResponse>;

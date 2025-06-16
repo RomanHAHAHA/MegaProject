@@ -3,11 +3,12 @@ using Common.API.Filters;
 using Common.Application.Options;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
+using Common.Infrastructure.Messaging.Publishers;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using OrdersService.Application.Features.GetPagedOrders;
 using OrdersService.Application.Features.Orders.Create;
+using OrdersService.Application.Features.Orders.GetPagedOrders;
 using OrdersService.Application.Options;
 using OrdersService.Application.Services;
 using OrdersService.Domain.Interfaces;
@@ -28,8 +29,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddScoped<IFilterStrategy<Order, OrderFilter>, OrdersFilterStrategy>();
         builder.Services.AddScoped<ISortStrategy<Order>, OrdersSortStrategy>();
         
-        
-        builder.Services.AddScoped<IProductRepository, ProductsRepository>();
+        builder.Services.AddScoped<IProductsRepository, ProductsesRepository>();
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         
         builder.Services.AddDbContext<OrdersDbContext>(options =>
@@ -53,7 +53,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IHttpUserContext, HttpUserContext>();
         builder.Services.AddApiAuthorization(builder.Configuration);
-
+        
         builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(typeof(CreateOrderCommandHandler).Assembly);
@@ -90,7 +90,8 @@ public static class ServiceCollectionExtensions
             {
                 options.DuplicateDetectionWindow = TimeSpan.FromSeconds(30);
                 options.QueryDelay = TimeSpan.FromSeconds(1);
-                options.UseSqlServer().UseBusOutbox();
+                options.UseSqlServer();
+                options.UseBusOutbox();
             });
             
             bugConfigurator.UsingRabbitMq((context, c) =>
@@ -107,8 +108,8 @@ public static class ServiceCollectionExtensions
                 
                 c.ReceiveEndpoint("orders-product-created", e => e.ConfigureConsumer<ProductCreatedConsumer>(context));
                 c.ReceiveEndpoint("orders-product-updated", e => e.ConfigureConsumer<ProductUpdatedConsumer>(context));
-                c.ReceiveEndpoint("orders-product-main-image-set", e => e.ConfigureConsumer<ProductMainImageSetConsumer>(context));
                 c.ReceiveEndpoint("orders-product-deleted", e => e.ConfigureConsumer<ProductDeletedConsumer>(context));
+                c.ReceiveEndpoint("orders-product-main-image-set", e => e.ConfigureConsumer<ProductMainImageSetConsumer>(context));
                 c.ReceiveEndpoint("orders-product-reservation-failed", e => e.ConfigureConsumer<ProductsReservationFailedConsumer>(context));
                 c.ReceiveEndpoint("orders-user-avatar-updated", e => e.ConfigureConsumer<UserAvatarUpdatedConsumer>(context));
                 c.ReceiveEndpoint("orders-user-registered", e => e.ConfigureConsumer<UserRegisteredConsumer>(context));

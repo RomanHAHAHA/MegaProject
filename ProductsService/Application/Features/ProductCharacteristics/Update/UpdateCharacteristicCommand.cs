@@ -5,4 +5,4 @@ namespace ProductsService.Application.Features.ProductCharacteristics.Update;
 
 public record UpdateCharacteristicCommand(
     Guid ProductId,
-    ProductCharacteristicUpdateDto CharacteristicDto) : IRequest<BaseResponse>;
+    ProductCharacteristicUpdateDto CharacteristicDto) : IRequest<ApiResponse>;

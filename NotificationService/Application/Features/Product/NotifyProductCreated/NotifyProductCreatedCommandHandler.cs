@@ -21,11 +21,17 @@ public class NotifyProductCreatedCommandHandler(
 
     public async Task Handle(NotifyProductSnapshotsCreatedCommand request, CancellationToken cancellationToken)
     {
+        await hashCacheService.SetFieldAsync(
+            request.CorrelationId.ToString(),
+            request.SenderServiceName,
+            TimeSpan.FromHours(1),
+            cancellationToken);
+        
         var lockKey = $"lock:product-created:{request.CorrelationId}";
         var gotLock = await redisLockService.AcquireLockWithRetryAsync(
             lockKey, 
-            TimeSpan.FromSeconds(2), 
-            maxRetries: 10, 
+            TimeSpan.FromSeconds(1), 
+            maxRetries: 5, 
             delayBetweenRetries: TimeSpan.FromMilliseconds(50),
             cancellationToken);
 
@@ -36,20 +42,15 @@ public class NotifyProductCreatedCommandHandler(
 
         try
         {
-            await hashCacheService.SetFieldAsync(
-                request.CorrelationId.ToString(),
-                request.SenderServiceName,
-                TimeSpan.FromHours(1),
-                cancellationToken);
+            var succeededServices = await hashCacheService
+                .GetAllFieldsAsync(request.CorrelationId.ToString(), cancellationToken);
 
-            var successServices = await hashCacheService.GetAllFieldsAsync(
-                request.CorrelationId.ToString(),
-                cancellationToken);
-
-            var allSucceeded = successServices.SetEquals(RequiredServices);
+            var allSucceeded = succeededServices.SetEquals(RequiredServices);
             
             if (allSucceeded)
             {
+                await redisLockService.ReleaseLockAsync(lockKey);
+
                 await hubContext.Clients
                     .User(request.UserId.ToString())
                     .NotifyProductCreated(request.ProductId, "Product successfully created");
@@ -59,7 +60,10 @@ public class NotifyProductCreatedCommandHandler(
         }
         finally
         {
-            await redisLockService.ReleaseLockAsync(lockKey);
+            if (gotLock)
+            {
+                await redisLockService.ReleaseLockAsync(lockKey);
+            }
         }
     }
 }

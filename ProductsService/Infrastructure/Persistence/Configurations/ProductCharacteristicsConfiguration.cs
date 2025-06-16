@@ -10,8 +10,9 @@ public class ProductCharacteristicsConfiguration : IEntityTypeConfiguration<Prod
     {
         builder.ToTable("ProductCharacteristics");
         
-        builder.HasKey(pc => new { pc.ProductId, pc.Name });
-        
+        builder.HasKey(pc => pc.Id); 
+        builder.HasIndex(pc => new { pc.ProductId, pc.Name }).IsUnique();
+
         builder.Property(pc => pc.ProductId).IsRequired();
         builder.Property(pc => pc.Name).HasMaxLength(255).IsRequired();
         builder.Property(pc => pc.Value).HasMaxLength(255).IsRequired();

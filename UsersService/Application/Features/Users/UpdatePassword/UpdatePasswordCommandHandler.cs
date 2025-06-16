@@ -14,15 +14,15 @@ public class UpdatePasswordCommandHandler(
     IUsersRepository usersRepository,
     IPublishEndpoint publishEndpoint, 
     IPasswordHasher passwordHasher,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<UpdatePasswordCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<UpdatePasswordCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(UpdatePasswordCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(UpdatePasswordCommand request, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
 
         if (user is null)
         {
-            return BaseResponse.NotFound("Unable to complete the request");
+            return ApiResponse.NotFound("Unable to complete the request");
         }
 
         if (!passwordHasher.Verify(request.UpdatePasswordDto.OldPassword, user.PasswordHash))
@@ -30,7 +30,7 @@ public class UpdatePasswordCommandHandler(
             await OnIncorrectPasswordEntered(user.Id, cancellationToken);
             await usersRepository.SaveChangesAsync(cancellationToken);
             
-            return BaseResponse.BadRequest("Incorrect old password");
+            return ApiResponse.BadRequest("Incorrect old password");
         }
         
         user.PasswordHash = passwordHasher.HashPassword(request.UpdatePasswordDto.NewPassword);
@@ -38,7 +38,7 @@ public class UpdatePasswordCommandHandler(
 
         var updated = await usersRepository.SaveChangesAsync(cancellationToken);
 
-        return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return updated ? ApiResponse.Ok() : ApiResponse.InternalServerError();
     }
     
     private async Task OnIncorrectPasswordEntered(Guid userId, CancellationToken cancellationToken)

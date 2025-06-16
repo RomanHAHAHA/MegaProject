@@ -5,4 +5,4 @@ namespace ProductsService.Application.Features.ProductImages.Create;
 
 public record AddImagesCommand(
     List<IFormFile> Images,
-    Guid ProductId) : IRequest<BaseResponse>;
+    Guid ProductId) : IRequest<ApiResponse>;

@@ -5,4 +5,4 @@ namespace UsersService.Application.Features.Users.UpdatePassword;
 
 public record UpdatePasswordCommand(
     Guid UserId,
-    UpdatePasswordDto UpdatePasswordDto) : IRequest<BaseResponse>;
+    UpdatePasswordDto UpdatePasswordDto) : IRequest<ApiResponse>;

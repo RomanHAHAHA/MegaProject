@@ -3,4 +3,4 @@ using MediatR;
 
 namespace LogsService.Application.Features.ActionLogs.DeleteLog;
 
-public record DeleteActionLogCommand(Guid ActionLogId) : IRequest<BaseResponse>;
+public record DeleteActionLogCommand(Guid ActionLogId) : IRequest<ApiResponse>;

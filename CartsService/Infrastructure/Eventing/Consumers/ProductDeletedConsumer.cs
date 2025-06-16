@@ -1,5 +1,4 @@
 ﻿using CartsService.Application.Features.Products.Delete;
-using Common.Infrastructure.Messaging.Events;
 using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;

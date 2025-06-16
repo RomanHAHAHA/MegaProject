@@ -2,29 +2,53 @@
 
 namespace OrdersService.Domain.Dtos;
 
-public class OrderDto(Order order)
+public class OrderDto
 {
-    public Guid Id { get; set; } = order.Id;
+    public required Guid Id { get; init; }
 
-    public string Status { get; set; } = order.Status.ToString();
+    public required string CreatedAt { get; init; } 
     
-    public UserViewDto User { get; set; } = new(order.User!);
+    public required UserDto User { get; init; } 
     
-    public DeliveryLocationDto DeliveryLocation { get; set; } = new(order.DeliveryLocation!);
+    public required List<OrderItemDto> OrderItems { get; init; } 
     
-    public string CreatedAt { get; set; } = $"{order.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm}";
+    public required DeliveryLocationDto DeliveryLocation { get; init; }
+    
+    public required List<OrderStatusDto> Statuses { get; init; }
 
-    public List<OrderItemDto> OrderItems { get; set; } = order.OrderItems
-        .Select(oi => new OrderItemDto(oi)).ToList();
+    public decimal TotalPrice => OrderItems.Sum(oi => oi.FixedPrice * oi.Quantity);
 
-    public decimal TotalPrice => OrderItems.Sum(oi => oi.Product.Price * oi.Quantity);
-}
-
-public class UserViewDto(UserSnapshot user)
-{
-    public Guid Id { get; set; } = user.Id;
-
-    public string NickName { get; set; } = user.NickName;
-
-    public string AvatarName { get; set; } = user.AvatarPath;
+    public static OrderDto FromEntity(Order order)
+    {
+        return new OrderDto
+        {
+            Id = order.Id,
+            CreatedAt = $"{order.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm}",
+            Statuses = order.Statuses.Select(s => new OrderStatusDto
+            {
+                Status = s.Status.ToString(),
+                CreatedAt = $"{order.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm}",
+            }).ToList(),
+            User = new UserDto
+            {
+                Id = order.UserId,
+                NickName = order.User!.NickName,
+                AvatarName = order.User!.AvatarPath
+            },
+            DeliveryLocation = new DeliveryLocationDto
+            {
+                Region = order.DeliveryLocation!.Region,
+                City = order.DeliveryLocation!.City,
+                Warehouse = order.DeliveryLocation!.Warehouse,
+            },
+            OrderItems = order.OrderItems.Select(oi => new OrderItemDto
+            {
+                ProductId = oi.ProductId,
+                Name = oi.Product!.Name,
+                MainImagePath = oi.Product!.MainImagePath,
+                FixedPrice = oi.FixedPrice,
+                Quantity = oi.Quantity,
+            }).ToList()
+        };
+    }
 }

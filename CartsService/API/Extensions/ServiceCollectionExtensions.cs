@@ -7,6 +7,7 @@ using Common.API.Filters;
 using Common.Application.Options;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
+using Common.Infrastructure.Messaging.Publishers;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
@@ -17,7 +18,7 @@ public static class ServiceCollectionExtensions
 {
     public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
     {
-        builder.Services.AddScoped<IProductRepository, ProductsRepository>();
+        builder.Services.AddScoped<IProductsRepository, ProductsesRepository>();
         builder.Services.AddScoped<ICartsRepository, CartsRepository>();
 
         builder.Services.AddDbContext<CartsDbContext>(options =>
@@ -68,7 +69,9 @@ public static class ServiceCollectionExtensions
             bugConfigurator.AddEntityFrameworkOutbox<CartsDbContext>(options =>
             {
                 options.DuplicateDetectionWindow = TimeSpan.FromSeconds(30);
+                options.QueryDelay = TimeSpan.FromSeconds(1);
                 options.UseSqlServer();
+                options.UseBusOutbox();
             });
     
             bugConfigurator.UsingRabbitMq((context, c) =>
@@ -84,8 +87,8 @@ public static class ServiceCollectionExtensions
                 c.ConfigureEndpoints(context);
                 c.ReceiveEndpoint("carts-product-created", e => e.ConfigureConsumer<ProductCreatedConsumer>(context));
                 c.ReceiveEndpoint("carts-product-updated", e => e.ConfigureConsumer<ProductUpdatedConsumer>(context));
-                c.ReceiveEndpoint("carts-product-main-image-set", e => e.ConfigureConsumer<ProductMainImageSetConsumer>(context));
                 c.ReceiveEndpoint("carts-product-deleted", e => e.ConfigureConsumer<ProductDeletedConsumer>(context));
+                c.ReceiveEndpoint("carts-product-main-image-set", e => e.ConfigureConsumer<ProductMainImageSetConsumer>(context));
                 c.ReceiveEndpoint("carts-order-processed", e => e.ConfigureConsumer<OrderProcessedConsumer>(context));
             });
         });

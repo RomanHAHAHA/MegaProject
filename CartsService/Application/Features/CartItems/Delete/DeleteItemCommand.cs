@@ -3,4 +3,4 @@ using MediatR;
 
 namespace CartsService.Application.Features.CartItems.Delete;
 
-public record DeleteItemCommand(Guid UserId, Guid ProductId) : IRequest<BaseResponse>;
+public record DeleteItemCommand(Guid UserId, Guid ProductId) : IRequest<ApiResponse>;

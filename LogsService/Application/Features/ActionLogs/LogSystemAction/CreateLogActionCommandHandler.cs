@@ -4,19 +4,20 @@ using MediatR;
 
 namespace LogsService.Application.Features.ActionLogs.LogSystemAction;
 
-public class CreateLogActionCommandHandler(ILogsRepository logsRepository) : 
-    IRequestHandler<CreateLogActionCommand>
+public class CreateLogActionCommandHandler(
+    ILogsRepository logsRepository) : IRequestHandler<CreateLogActionCommand>
 {
     public async Task Handle(CreateLogActionCommand request, CancellationToken cancellationToken)
     {
-        var actionLog = new ActionLog
-        {
-            UserId = request.UserId,    
-            ActionType = request.ActionType,
-            Description = request.Message,
-        };
-
-        await logsRepository.CreateAsync(actionLog, cancellationToken);    
+        await logsRepository.CreateAsync(
+            new ActionLog
+            {
+                UserId = request.UserId,    
+                ActionType = request.ActionType,
+                Description = request.Message,
+            }, 
+            cancellationToken);    
+        
         await logsRepository.SaveChangesAsync(cancellationToken);
     }
 }

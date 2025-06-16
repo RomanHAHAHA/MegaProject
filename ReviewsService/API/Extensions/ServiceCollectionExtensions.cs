@@ -43,7 +43,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddScoped<IHttpUserContext, HttpUserContext>();
         builder.Services.AddHttpClient<IOrderServiceClient, OrderServiceClient>();
-
+        
         builder.Services.AddApiAuthorization(builder.Configuration);
 
         builder.Services.AddMediatR(cfg =>

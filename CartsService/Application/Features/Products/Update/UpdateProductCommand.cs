@@ -3,6 +3,8 @@
 namespace CartsService.Application.Features.Products.Update;
 
 public record UpdateProductCommand(
-    Guid Id,
+    Guid CorrelationId,
+    Guid ProductId,
+    Guid UserId,
     string Name,
     decimal Price) : IRequest;

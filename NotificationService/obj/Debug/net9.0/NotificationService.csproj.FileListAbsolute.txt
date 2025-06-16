@@ -101,3 +101,5 @@ D:\Rider\Projects\OLXKiller\NotificationService\obj\Debug\net9.0\refint\Notifica
 D:\Rider\Projects\OLXKiller\NotificationService\obj\Debug\net9.0\NotificationService.pdb
 D:\Rider\Projects\OLXKiller\NotificationService\obj\Debug\net9.0\NotificationService.genruntimeconfig.cache
 D:\Rider\Projects\OLXKiller\NotificationService\obj\Debug\net9.0\ref\NotificationService.dll
+D:\Rider\Projects\OLXKiller\NotificationService\bin\Debug\net9.0\Polly.dll
+D:\Rider\Projects\OLXKiller\NotificationService\bin\Debug\net9.0\Polly.Core.dll

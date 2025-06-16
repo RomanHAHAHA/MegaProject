@@ -4,4 +4,4 @@ using MediatR;
 
 namespace ProductsService.Application.Features.ProductImages.Delete;
 
-public record DeleteProductImage(Guid ImageId) : IRequest<BaseResponse>; 
+public record DeleteProductImage(Guid ImageId) : IRequest<ApiResponse>; 

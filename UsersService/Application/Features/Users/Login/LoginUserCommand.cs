@@ -3,4 +3,4 @@ using MediatR;
 
 namespace UsersService.Application.Features.Users.Login;
 
-public record LoginUserCommand(UserLoginDto UserLoginDto) : IRequest<BaseResponse<string>>;
+public record LoginUserCommand(UserLoginDto UserLoginDto) : IRequest<ApiResponse<string>>;

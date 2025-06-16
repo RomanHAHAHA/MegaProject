@@ -1,7 +1,7 @@
 ﻿using Common.Infrastructure.Messaging.Events.Order;
 using MassTransit;
 using MediatR;
-using ProductsService.Application.Features.Products.Reserve;
+using ProductsService.Application.Features.Products.Commands.Reserve;
 
 namespace ProductsService.Infrastructure.Messaging.Consumers;
 

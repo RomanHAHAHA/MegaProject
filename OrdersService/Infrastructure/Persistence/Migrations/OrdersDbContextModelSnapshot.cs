@@ -247,7 +247,7 @@ namespace OrdersService.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Status")
+                    b.Property<int>("CurrentStatus")
                         .HasColumnType("int");
 
                     b.Property<Guid>("UserId")
@@ -268,6 +268,9 @@ namespace OrdersService.Migrations
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal>("FixedPrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -278,6 +281,28 @@ namespace OrdersService.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderItems", "orders");
+                });
+
+            modelBuilder.Entity("OrdersService.Domain.Entities.OrderStatusHistoryItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderStatusHistory", "orders");
                 });
 
             modelBuilder.Entity("OrdersService.Domain.Entities.UserSnapshot", b =>
@@ -351,11 +376,24 @@ namespace OrdersService.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("OrdersService.Domain.Entities.OrderStatusHistoryItem", b =>
+                {
+                    b.HasOne("OrdersService.Domain.Entities.Order", "Order")
+                        .WithMany("Statuses")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("OrdersService.Domain.Entities.Order", b =>
                 {
                     b.Navigation("DeliveryLocation");
 
                     b.Navigation("OrderItems");
+
+                    b.Navigation("Statuses");
                 });
 
             modelBuilder.Entity("OrdersService.Domain.Entities.UserSnapshot", b =>

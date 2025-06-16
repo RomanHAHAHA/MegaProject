@@ -185,3 +185,5 @@ D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\SharpGrip.FluentVali
 D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\SharpGrip.FluentValidation.AutoValidation.Shared.dll
 D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
 D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\Scrutor.dll
+D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\Polly.dll
+D:\Rider\Projects\OLXKiller\ReviewsService\bin\Debug\net9.0\Polly.Core.dll

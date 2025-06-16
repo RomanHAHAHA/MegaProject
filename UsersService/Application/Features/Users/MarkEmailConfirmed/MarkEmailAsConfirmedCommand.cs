@@ -3,4 +3,4 @@ using MediatR;
 
 namespace UsersService.Application.Features.Users.MarkEmailConfirmed;
 
-public record MarkEmailAsConfirmedCommand(string Email) : IRequest<BaseResponse>;
+public record MarkEmailAsConfirmedCommand(string Email) : IRequest<ApiResponse>;

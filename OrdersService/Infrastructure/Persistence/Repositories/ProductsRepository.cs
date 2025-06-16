@@ -4,7 +4,7 @@ using OrdersService.Domain.Interfaces;
 
 namespace OrdersService.Infrastructure.Persistence.Repositories;
 
-public class ProductsRepository(OrdersDbContext dbContext) : IProductRepository
+public class ProductsesRepository(OrdersDbContext dbContext) : IProductsRepository
 {
     public async Task CreateAsync(
         ProductSnapshot product, 

@@ -6,9 +6,9 @@ using MediatR;
 namespace CartsService.Application.Features.CartItems.Delete;
 
 public class DeleteItemCommandHandler(ICartsRepository cartsRepository) : 
-    IRequestHandler<DeleteItemCommand, BaseResponse>
+    IRequestHandler<DeleteItemCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(DeleteItemCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(DeleteItemCommand request, CancellationToken cancellationToken)
     {
         var cartItem = await cartsRepository.GetByIdAsync(
             request.UserId,
@@ -17,14 +17,12 @@ public class DeleteItemCommandHandler(ICartsRepository cartsRepository) :
 
         if (cartItem is null)
         {
-            return BaseResponse.NotFound(nameof(CartItem));
+            return ApiResponse.NotFound(nameof(CartItem));
         }
 
         cartsRepository.Delete(cartItem);
-        var removed = await cartsRepository.SaveChangesAsync(cancellationToken);
+        await cartsRepository.SaveChangesAsync(cancellationToken);
         
-        return removed ?
-            BaseResponse.Ok() : 
-            BaseResponse.InternalServerError("Failed to remove item");
+        return ApiResponse.Ok();
     }
 }

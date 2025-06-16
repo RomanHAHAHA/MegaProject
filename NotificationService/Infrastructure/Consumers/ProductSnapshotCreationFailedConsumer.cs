@@ -1,5 +1,4 @@
-﻿using Common.Infrastructure.Messaging.Events;
-using Common.Infrastructure.Messaging.Events.Product;
+﻿using Common.Infrastructure.Messaging.Events.Product;
 using MassTransit;
 using MediatR;
 using NotificationService.Application.Features.Product.NotifyProductCreationFailed;
@@ -15,7 +14,6 @@ public class ProductSnapshotCreationFailedConsumer(
         var @event = context.Message;
         var command = new NotifyProductSnapshotCreationFailedCommand(
             @event.CorrelationId,
-            @event.ProductId,
             @event.UserId);
         
         await mediator.Send(command, context.CancellationToken);

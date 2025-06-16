@@ -3,4 +3,4 @@ using MediatR;
 
 namespace UsersService.Application.Features.Users.Delete;
 
-public record DeleteUserCommand(Guid UserId) : IRequest<BaseResponse>;
+public record DeleteUserCommand(Guid UserId) : IRequest<ApiResponse>;

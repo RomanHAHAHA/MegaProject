@@ -14,6 +14,10 @@ public interface INotificationClient
     
     Task NotifyProductCreationFailed(string error);
     
+    Task NotifyProductUpdated(Guid productId, string message);
+
+    Task NotifyProductUpdateFailed(string error);
+    
     Task NotifyUserRegistered();
     
     Task NotifyUserRegistrationFailed();

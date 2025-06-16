@@ -6,31 +6,28 @@ using UsersService.Domain.Interfaces;
 namespace UsersService.Application.Features.Users.MarkEmailConfirmed;
 
 public class MarkEmailAsConfirmedCommandHandler(IUsersRepository usersRepository) : 
-    IRequestHandler<MarkEmailAsConfirmedCommand, BaseResponse>
+    IRequestHandler<MarkEmailAsConfirmedCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(
-        MarkEmailAsConfirmedCommand request, 
-        CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(MarkEmailAsConfirmedCommand request, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetByEmailAsync(request.Email, cancellationToken);
 
         if (user is null)
         {
-            return BaseResponse.NotFound(nameof(User));
+            return ApiResponse.NotFound(nameof(User));
         }
 
         if (user.EmailConfirmed)
         {
-            return BaseResponse.Ok();
+            return ApiResponse.Ok();
         }
         
         user.EmailConfirmed = true;
         
-        usersRepository.Update(user);
         var updated = await usersRepository.SaveChangesAsync(cancellationToken);
 
         return updated ? 
-            BaseResponse.Ok() :
-            BaseResponse.InternalServerError("Failed to update user");
+            ApiResponse.Ok() :
+            ApiResponse.InternalServerError("Failed to update user");
     }
 }

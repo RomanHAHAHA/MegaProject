@@ -1,3 +1,4 @@
+using Common.Infrastructure.Messaging.Publishers;
 using ReviewsService.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,8 @@ builder
     .AddMessaging();
 
 var app = builder.Build();
+
+EventPublisherExtensions.Initialize(app.Services);
 
 if (app.Environment.IsDevelopment())
 {

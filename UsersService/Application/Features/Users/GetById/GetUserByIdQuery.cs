@@ -5,4 +5,4 @@ using UsersService.Domain.Entities;
 
 namespace UsersService.Application.Features.Users.GetById;
 
-public record GetUserByIdQuery(Guid UserId) : IRequest<BaseResponse<User>>;
+public record GetUserByIdQuery(Guid UserId) : IRequest<ApiResponse<User>>;

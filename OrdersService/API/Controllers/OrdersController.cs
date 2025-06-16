@@ -3,11 +3,11 @@ using Common.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OrdersService.Application.Features.HasUserOrderedProduct;
 using OrdersService.Application.Features.Orders.Create;
 using OrdersService.Application.Features.Orders.GetConfirmedOrders;
-using OrdersService.Application.Features.Orders.GetUsersOrders;
+using OrdersService.Application.Features.Orders.GetPersonalOrders;
 using OrdersService.Application.Features.Orders.SetStatus;
+using OrdersService.Application.Features.Products.HasUserOrderedProduct;
 using OrdersService.Domain.Dtos;
 using OrdersService.Domain.Interfaces;
 
@@ -38,7 +38,7 @@ public class OrdersController(
     [HttpGet("my")]
     public async Task<IActionResult> GetMyOrdersAsync(CancellationToken cancellationToken)
     {
-        var command = new GetUserOrdersCommand(User.GetId());
+        var command = new GetPersonalOrdersCommand(User.GetId());
         var orders = await mediator.Send(command, cancellationToken);
         return Ok(new { data = orders });
     }
@@ -59,7 +59,7 @@ public class OrdersController(
         OrderStatus status,
         CancellationToken cancellationToken)
     {
-        var command = new SetOrderStatusCommand(orderId, status);
+        var command = new SetOrderStatusCommand(User.GetId(), orderId, status);
         var response = await mediator.Send(command, cancellationToken);
         return this.HandleResponse(response);
     }
@@ -70,10 +70,7 @@ public class OrdersController(
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var command = new HasUserOrderedProductQuery(
-            User.GetId(),
-            productId);
-        
+        var command = new HasReceivedProductQuery(User.GetId(),productId);
         var response = await mediator.Send(command, cancellationToken);
         return this.HandleResponse(response);
     }

@@ -183,3 +183,5 @@ D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\MassTransit.EntityFram
 D:\Rider\Projects\OLXKiller\CartsService\obj\Debug\net9.0\CartsService.sourcelink.json
 D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
 D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\Scrutor.dll
+D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\Polly.dll
+D:\Rider\Projects\OLXKiller\CartsService\bin\Debug\net9.0\Polly.Core.dll

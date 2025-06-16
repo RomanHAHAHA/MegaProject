@@ -16,15 +16,15 @@ public class SetAvatarImageCommandHandler(
     IPublishEndpoint publishEndpoint,
     IOptions<UserImagesOptions> userImagesOptions,
     IOptions<ServiceOptions> serviceOptions,
-    ICacheService<string> cacheService) : IRequestHandler<SetAvatarImageCommand, BaseResponse>
+    ICacheService<string> cacheService) : IRequestHandler<SetAvatarImageCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(SetAvatarImageCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(SetAvatarImageCommand request, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
 
         if (user is null)
         {
-            return BaseResponse.NotFound("Unable to complete the request.");
+            return ApiResponse.NotFound("Unable to complete the request.");
         }
 
         var result = await fileStorageService.SaveFileAsync(
@@ -34,7 +34,7 @@ public class SetAvatarImageCommandHandler(
 
         if (result.IsFailure)
         {
-            return BaseResponse.InternalServerError(result.Error);
+            return ApiResponse.InternalServerError(result.Error);
         }
         
         await cacheService.SetAsync(
@@ -48,12 +48,7 @@ public class SetAvatarImageCommandHandler(
 
         var updated = await usersRepository.SaveChangesAsync(cancellationToken);
 
-        if (!updated)
-        {
-            return BaseResponse.InternalServerError();
-        }
-        
-        return BaseResponse.Ok();
+        return updated ? ApiResponse.Ok() : ApiResponse.InternalServerError();
     }
     
     private async Task OnAvatarSet(User user, CancellationToken cancellationToken)

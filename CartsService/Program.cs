@@ -1,4 +1,5 @@
 using CartsService.API.Extensions;
+using Common.Infrastructure.Messaging.Publishers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,8 @@ builder
     .AddOptionsServices();
 
 var app = builder.Build();
+
+EventPublisherExtensions.Initialize(app.Services);
 
 if (app.Environment.IsDevelopment())
 {

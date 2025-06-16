@@ -1,49 +1,51 @@
 ﻿using Common.Domain.Models.Results;
 using MediatR;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using ProductsService.Domain.Entities;
-using ProductsService.Domain.Interfaces;
+using ProductsService.Infrastructure.Persistence;
 
 namespace ProductsService.Application.Features.ProductCharacteristics.Update;
 
 public class UpdateCharacteristicCommandHandler(
-    IProductCharacteristicsRepository characteristicsRepository) : 
-    IRequestHandler<UpdateCharacteristicCommand, BaseResponse>
+    ProductsDbContext dbContext) : IRequestHandler<UpdateCharacteristicCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(UpdateCharacteristicCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(UpdateCharacteristicCommand request, CancellationToken cancellationToken)
     {
-        var characteristic = await characteristicsRepository.GetByIdAsync(
-            request.ProductId,
-            request.CharacteristicDto.OldName,
-            cancellationToken);
+        var characteristic = await GetCharacteristicAsync(request, cancellationToken);
 
         if (characteristic is null)
         {
-            return BaseResponse.NotFound(nameof(ProductCharacteristic));
+            return ApiResponse.NotFound(nameof(ProductCharacteristic));
         }
         
-        var characteristicsNames = (await characteristicsRepository
-                .GetProductCharacteristicsAsync(request.ProductId, cancellationToken))
-                    .Select(pc => pc.Name)
-                    .ToList();
-                
-        if (characteristicsNames.Contains(request.CharacteristicDto.NewName))
+        characteristic.Name = request.CharacteristicDto.NewName;
+        characteristic.Value = request.CharacteristicDto.Value;
+        
+        try
         {
-            return BaseResponse.Conflict($"Characteristic \"{request.CharacteristicDto.NewName}\" already exists.");
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
-        
-        characteristicsRepository.Delete(characteristic);
-
-        var updatedCharacteristic = new ProductCharacteristic
+        catch (DbUpdateException e) when (e.InnerException is SqlException { Number: 2601 })
         {
-            ProductId = request.ProductId,
-            Name = request.CharacteristicDto.NewName,
-            Value = request.CharacteristicDto.Value
-        };
-        
-        await characteristicsRepository.CreateAsync(updatedCharacteristic, cancellationToken);
-        
-        var updated = await characteristicsRepository.SaveChangesAsync(cancellationToken);
+            return ApiResponse.Conflict($"Feature \"{request.CharacteristicDto.NewName}\" is already exists.");
+        }
+        catch (Exception)
+        {
+            return ApiResponse.InternalServerError();
+        }
 
-        return updated ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return ApiResponse.Ok();
+    }
+    
+    private async Task<ProductCharacteristic?> GetCharacteristicAsync(
+        UpdateCharacteristicCommand request,
+        CancellationToken cancellationToken)
+    {
+        return await dbContext.ProductCharacteristics
+            .FirstOrDefaultAsync(c => 
+                    c.ProductId == request.ProductId && 
+                    c.Name == request.CharacteristicDto.OldName,
+                cancellationToken);
     }
 }

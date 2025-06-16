@@ -3,4 +3,4 @@ using MediatR;
 
 namespace CartsService.Application.Features.CartItems.Create;
 
-public record AddProductToCartCommand(Guid UserId, Guid ProductId) : IRequest<BaseResponse>;
+public record AddProductToCartCommand(Guid UserId, Guid ProductId) : IRequest<ApiResponse>;

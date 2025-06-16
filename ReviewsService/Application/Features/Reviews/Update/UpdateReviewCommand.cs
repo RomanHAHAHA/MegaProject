@@ -6,4 +6,4 @@ namespace ReviewsService.Application.Features.Reviews.Update;
 
 public record UpdateReviewCommand(
     ReviewCreateDto ReviewCreateDto,
-    Guid UserId) : IRequest<BaseResponse>;
+    Guid UserId) : IRequest<ApiResponse>;

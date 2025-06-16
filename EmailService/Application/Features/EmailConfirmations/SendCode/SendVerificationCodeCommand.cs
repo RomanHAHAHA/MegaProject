@@ -3,4 +3,4 @@ using MediatR;
 
 namespace EmailService.Application.Features.EmailConfirmations.SendCode;
 
-public record SendVerificationCodeCommand(string Email) : IRequest<BaseResponse>;
+public record SendVerificationCodeCommand(string Email) : IRequest<ApiResponse>;

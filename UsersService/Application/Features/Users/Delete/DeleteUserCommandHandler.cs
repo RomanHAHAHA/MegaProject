@@ -12,15 +12,15 @@ namespace UsersService.Application.Features.Users.Delete;
 public class DeleteUserCommandHandler(
     IUsersRepository usersRepository,
     IPublishEndpoint publisher,
-    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<DeleteUserCommand, BaseResponse>
+    IOptions<ServiceOptions> serviceOptions) : IRequestHandler<DeleteUserCommand, ApiResponse>
 {
-    public async Task<BaseResponse> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+    public async Task<ApiResponse> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetByIdAsync(request.UserId, cancellationToken);
 
         if (user is null)
         {
-            return BaseResponse.NotFound(nameof(User));
+            return ApiResponse.NotFound(nameof(User));
         }
         
         usersRepository.Delete(user);
@@ -28,7 +28,7 @@ public class DeleteUserCommandHandler(
         
         var deleted = await usersRepository.SaveChangesAsync(cancellationToken);
         
-        return deleted ? BaseResponse.Ok() : BaseResponse.InternalServerError();
+        return deleted ? ApiResponse.Ok() : ApiResponse.InternalServerError();
     }
 
     private async Task OnUserDeleted(Guid userId, CancellationToken cancellationToken)

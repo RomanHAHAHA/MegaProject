@@ -32,9 +32,7 @@ public class FileStorageService : IFileStorageService
         return fileName;
     }
 
-    public async Task<Result> DeleteFileAsync(
-        string filePath, 
-        CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteFileAsync(string filePath, CancellationToken cancellationToken = default)
     {
         if (!File.Exists(filePath))
         {

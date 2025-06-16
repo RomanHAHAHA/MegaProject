@@ -5,4 +5,4 @@ namespace ReviewsService.Application.Features.Reviews.Create;
 
 public record CreateReviewCommand(
     ReviewCreateDto ReviewCreateDto,
-    Guid UserId) : IRequest<BaseResponse>;
+    Guid UserId) : IRequest<ApiResponse>;

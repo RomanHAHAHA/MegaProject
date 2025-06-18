@@ -1,6 +1,6 @@
 ﻿namespace ProductsService.Application.Features.Products.Queries.GetPagedList;
 
-public class ProductFilter()
+public class ProductFilter
 {
     public string? Name { get; set; }
     
@@ -14,5 +14,5 @@ public class ProductFilter()
     
     public Guid UserId { get; set; } = Guid.Empty;
     
-    public bool ExcludeMyProducts { get; set; } = true;
+    public ProductFilterMode FilterMode { get; set; } = ProductFilterMode.AllProducts;
 }

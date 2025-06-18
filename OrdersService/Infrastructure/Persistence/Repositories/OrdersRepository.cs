@@ -26,6 +26,9 @@ public class OrdersRepository(OrdersDbContext dbContext) :
         var pagedOrders = await AppDbContext.Orders
             .AsNoTracking()
             .AsSplitQuery()
+            .Include(o => o.User)
+            .Include(o => o.DeliveryLocation)
+            .Include(o => o.Statuses)
             .Include(o => o.OrderItems)
             .ThenInclude(oi => oi.Product)
             .Filter(orderFilter)

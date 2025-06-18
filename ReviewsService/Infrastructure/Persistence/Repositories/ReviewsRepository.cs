@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ReviewsService.Application.Features.Reviews.GetPendingReviews;
+using ReviewsService.Application.Features.Reviews.GetFilteredReviews;
 using ReviewsService.Application.Features.Reviews.GetProductReviews;
 using ReviewsService.Domain.Dtos;
 using ReviewsService.Domain.Entities;
@@ -37,14 +37,23 @@ public class ReviewsRepository(ReviewsDbContext dbContext) : IReviewsRepository
         Guid productId,
         CancellationToken cancellationToken = default)
     {
-        return await dbContext.Reviews
-            .Where(r => r.ProductId == productId && r.Status == ReviewStatus.Approved)
+        var approvedReviews = dbContext.Reviews
+            .AsNoTracking()
+            .Where(r => r.ProductId == productId && r.Status == ReviewStatus.Approved);
+
+        if (!await approvedReviews.AnyAsync(cancellationToken))
+        {
+            return 0;
+        }
+
+        return await approvedReviews
             .Select(r => r.Rate)
             .AverageAsync(cancellationToken);
-    }  
+    }
     
     public async Task<List<ProductReviewDto>> GetProductReviewsAsync(
         Guid productId,
+        Guid currentUserId,
         CancellationToken cancellationToken = default)
     {
         return await dbContext.Reviews
@@ -63,12 +72,16 @@ public class ReviewsRepository(ReviewsDbContext dbContext) : IReviewsRepository
                 Rate = r.Rate,
                 CreatedAt = $"{r.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm}",
                 LikesCount = r.Votes.Count(v => v.VoteType == VoteType.Like),
-                DislikesCount = r.Votes.Count(v => v.VoteType == VoteType.Dislike)
+                DislikesCount = r.Votes.Count(v => v.VoteType == VoteType.Dislike),
+                CurrentUserVote = r.Votes
+                    .Where(v => v.UserId == currentUserId)
+                    .Select(v => (int)v.VoteType) 
+                    .FirstOrDefault() 
             })
             .ToListAsync(cancellationToken);
     }
     
-    public async Task<List<PendingReviewDto>> GetPendingReviewsAsync(
+    public async Task<List<ReviewToModerateDto>> GetPendingReviewsAsync(
         CancellationToken cancellationToken = default)
     {
         return await dbContext.Reviews
@@ -77,15 +90,16 @@ public class ReviewsRepository(ReviewsDbContext dbContext) : IReviewsRepository
             .Include(r => r.Product)
             .Where(r => r.Status == ReviewStatus.Pending)
             .OrderBy(r => r.CreatedAt)
-            .Select(r => new PendingReviewDto
+            .Select(r => new ReviewToModerateDto
             {
                 ProductId = r.ProductId,
                 User = new UserReviewDto
                 {
-                    UserId = r.UserId,
+                    Id = r.UserId,
                     NickName = r.User!.NickName,
                     AvatarPath = r.User!.AvatarPath,
                 },
+                Status = r.Status.ToString(),
                 Text = r.Text,
                 Rate = r.Rate,
                 CreatedAt = $"{r.CreatedAt.ToLocalTime():dd.MM.yyyy}",

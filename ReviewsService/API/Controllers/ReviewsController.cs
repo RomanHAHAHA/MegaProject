@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ReviewsService.Application.Features.Products.GetRatingQuery;
 using ReviewsService.Application.Features.Reviews.Create;
-using ReviewsService.Application.Features.Reviews.GetPendingReviews;
 using ReviewsService.Application.Features.Reviews.GetProductReviews;
 using ReviewsService.Application.Features.Reviews.SetStatus;
 using ReviewsService.Application.Features.Reviews.Update;
@@ -53,8 +52,8 @@ public class ReviewsController(
         return this.HandleResponse(response);
     }
 
-    [HttpPatch("status/{status}")]
-    [Authorize]
+    [HttpPatch("{userId:guid}/{productId:guid}/status/{status}")]
+    [HasPermission(PermissionEnum.ManageReviews)]
     public async Task<IActionResult> SetReviewStatusAsync(
         Guid userId,
         Guid productId,
@@ -72,7 +71,7 @@ public class ReviewsController(
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var query = new GetProductReviewsQuery(productId);
+        var query = new GetProductReviewsQuery(productId, User.GetId());
         return await mediator.Send(query, cancellationToken);
     }
 
@@ -84,14 +83,5 @@ public class ReviewsController(
         var query = new GetProductRatingQuery(productId);
         var rating = await mediator.Send(query, cancellationToken);
         return Ok(new { data = rating });
-    }
-
-    [HttpGet("pending")]
-    [Authorize]
-    public async Task<List<PendingReviewDto>> GetPendingReviewsAsync(
-        CancellationToken cancellationToken)
-    {
-        var query = new GetPendingReviewsQuery();
-        return await mediator.Send(query, cancellationToken);
     }
 }

@@ -2,9 +2,9 @@
 
 public class UserReviewDto
 {
-    public required Guid UserId { get; set; }
+    public required Guid Id { get; init; }
     
-    public required string NickName { get; set; }
+    public required string NickName { get; init; }
 
-    public required string AvatarPath { get; set; }
+    public required string AvatarPath { get; init; }
 }

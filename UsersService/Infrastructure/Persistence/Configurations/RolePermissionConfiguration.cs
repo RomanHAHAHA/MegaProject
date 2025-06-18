@@ -17,13 +17,8 @@ public class RolePermissionConfiguration : IEntityTypeConfiguration<RolePermissi
                 Create(Role.Admin, PermissionEnum.ManageActionLogs),
                 Create(Role.Admin, PermissionEnum.ManageReviews),
                 Create(Role.Admin, PermissionEnum.ManageOrders),
-                Create(Role.Admin, PermissionEnum.ManageProducts),
                 Create(Role.Admin, PermissionEnum.ManageCategories),
-                Create(Role.Admin, PermissionEnum.ManageUsers),
-                Create(Role.Admin, PermissionEnum.ManageProductImages),
-                Create(Role.Admin, PermissionEnum.ViewActionLogs),
-                Create(Role.Admin, PermissionEnum.ViewUsers)
-                );
+                Create(Role.Admin, PermissionEnum.ManageUsers));
     }
 
     private static RolePermission Create(Role role, PermissionEnum permission)

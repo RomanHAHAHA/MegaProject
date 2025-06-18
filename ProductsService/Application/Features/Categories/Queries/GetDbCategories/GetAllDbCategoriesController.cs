@@ -1,5 +1,6 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
+﻿using Common.API.Authentication;
+using Common.Domain.Enums;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ProductsService.Application.Features.Categories.Queries.GetDbCategories;
@@ -9,7 +10,7 @@ namespace ProductsService.Application.Features.Categories.Queries.GetDbCategorie
 public class GetAllDbCategoriesController(IMediator mediator) : ControllerBase
 {
     [HttpGet("db")]
-    [Authorize]
+    [HasPermission(PermissionEnum.ManageCategories)]
     public async Task<IActionResult> GetAllDbCategories(CancellationToken cancellationToken)
     {
         var query = new GetDbCategoriesQuery();

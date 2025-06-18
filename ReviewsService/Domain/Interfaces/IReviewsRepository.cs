@@ -1,4 +1,4 @@
-﻿using ReviewsService.Application.Features.Reviews.GetPendingReviews;
+﻿using ReviewsService.Application.Features.Reviews.GetFilteredReviews;
 using ReviewsService.Application.Features.Reviews.GetProductReviews;
 using ReviewsService.Domain.Entities;
 
@@ -19,9 +19,10 @@ public interface IReviewsRepository
 
     Task<List<ProductReviewDto>> GetProductReviewsAsync(
         Guid productId,
+        Guid currentUserId,
         CancellationToken cancellationToken = default);
 
-    Task<List<PendingReviewDto>> GetPendingReviewsAsync(CancellationToken cancellationToken = default);
+    Task<List<ReviewToModerateDto>> GetPendingReviewsAsync(CancellationToken cancellationToken = default);
 
     Task<double> GetAverageProductRatingAsync(
         Guid productId,

@@ -3,4 +3,4 @@ using MediatR;
 
 namespace ProductsService.Application.Features.Products.Queries.GetProductFullInfo;
 
-public record GetProductInfoQuery(Guid ProductId) : IRequest<ApiResponse<ProductInfoDto>>;
+public record GetProductInfoQuery(Guid ProductId, Guid UserId) : IRequest<ApiResponse<ProductInfoDto>>;

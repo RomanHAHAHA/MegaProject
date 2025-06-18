@@ -7,7 +7,9 @@ using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using ReviewsService.Application.Features.Reviews.Create;
+using ReviewsService.Application.Features.Reviews.GetFilteredReviews;
 using ReviewsService.Application.Services;
+using ReviewsService.Domain.Entities;
 using ReviewsService.Domain.Interfaces;
 using ReviewsService.Infrastructure.Events.Consumers;
 using ReviewsService.Infrastructure.Persistence;
@@ -22,6 +24,9 @@ public static class ServiceCollectionExtensions
     public static WebApplicationBuilder AddDatabase(this WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<IReviewsRepository, ReviewsRepository>();
+        builder.Services.AddScoped<IFilterStrategy<Review, ReviewsFilter>, ReviewsFilterStrategy>();
+        builder.Services.AddScoped<ISortStrategy<Review>, ReviewSortStrategy>();
+        
         builder.Services.AddScoped<IUsersRepository, UsersRepository>();
         builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
 

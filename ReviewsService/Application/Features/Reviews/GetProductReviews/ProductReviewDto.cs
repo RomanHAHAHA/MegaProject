@@ -2,21 +2,23 @@
 
 public class ProductReviewDto
 {
-    public Guid ProductId { get; set; }
+    public required Guid ProductId { get; init; }
     
-    public Guid UserId { get; set; }
+    public required Guid UserId { get; init; }
     
-    public string NickName { get; set; } = string.Empty;
+    public required string NickName { get; init; } 
 
-    public string AvatarPath { get; set; } = string.Empty;
+    public required string AvatarPath { get; init; }
 
-    public string Text { get; set; } = string.Empty;
+    public required string Text { get; init; } 
 
-    public double Rate { get; set; } 
+    public required double Rate { get; init; } 
 
-    public string CreatedAt { get; set; } = string.Empty;
+    public required string CreatedAt { get; init; }
     
-    public int LikesCount { get; set; }
+    public required int LikesCount { get; init; }
     
-    public int DislikesCount { get; set; }
+    public required int DislikesCount { get; init; }
+    
+    public required int CurrentUserVote { get; init; }
 }

@@ -6,7 +6,6 @@ using Common.Domain.Models.Results;
 using LogsService.Application.Features.ActionLogs.DeleteLog;
 using LogsService.Application.Features.ActionLogs.GetLogsPagedList;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LogsService.API.Controllers;
@@ -16,7 +15,7 @@ namespace LogsService.API.Controllers;
 public class ActionLogsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    [Authorize]
+    [HasPermission(PermissionEnum.ManageActionLogs)]
     public async Task<PagedList<PagedActionLogDto>> GetActionLogsAsync(
         [FromQuery] ActionLogFilter filter,
         [FromQuery] SortParams sortParams,
@@ -28,7 +27,7 @@ public class ActionLogsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{actionLogId:guid}")]
-    [Authorize]
+    [HasPermission(PermissionEnum.ManageActionLogs)]
     public async Task<IActionResult> DeleteActionLogAsync(
         Guid actionLogId,
         CancellationToken cancellationToken)

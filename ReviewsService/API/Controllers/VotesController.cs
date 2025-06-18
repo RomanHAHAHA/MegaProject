@@ -12,7 +12,7 @@ namespace ReviewsService.API.Controllers;
 public class VotesController(IMediator mediator) : ControllerBase
 {
     [Authorize]
-    [HttpPost]
+    [HttpPost("{userId:guid}/{productId:guid}/{voteType}")]
     public async Task<IActionResult> SetReviewVoteAsync(
         Guid userId,
         Guid productId,

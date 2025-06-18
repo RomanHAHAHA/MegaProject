@@ -15,7 +15,7 @@ public class GetProductFullInfoController(IMediator mediator) : ControllerBase
         Guid productId,
         CancellationToken cancellationToken)
     {
-        var query = new GetProductInfoQuery(productId);
+        var query = new GetProductInfoQuery(productId, User.GetId());
         var response = await mediator.Send(query, cancellationToken);
         return this.HandleResponse(response);
     }

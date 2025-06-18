@@ -11,7 +11,7 @@ public class ReviewCreateDtoValidator : AbstractValidator<ReviewCreateDto>
         
         RuleFor(p => p.Text)
             .NotEmpty().WithMessage("Text is required")
-            .MaximumLength(500).WithMessage("Text must not exceed 500 characters")
+            .MaximumLength(255).WithMessage("Text must not exceed 255 characters")
             .MinimumLength(20).WithMessage("Text must have at least 20 characters");
         
         RuleFor(p => p.Rate)

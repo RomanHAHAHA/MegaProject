@@ -1,6 +1,7 @@
-﻿using Common.API.Extensions;
+﻿using Common.API.Authentication;
+using Common.API.Extensions;
+using Common.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductsService.Application.Common.Dtos;
 
@@ -11,7 +12,7 @@ namespace ProductsService.Application.Features.Categories.Commands.Create;
 public class CreateCategoryController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    [Authorize]
+    [HasPermission(PermissionEnum.ManageCategories)]
     public async Task<IActionResult> CreateCategoryAsync(
         [FromBody] CategoryCreateDto categoryCreateDto,
         CancellationToken cancellationToken)

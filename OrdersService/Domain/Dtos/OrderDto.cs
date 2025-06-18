@@ -27,7 +27,7 @@ public class OrderDto
             Statuses = order.Statuses.Select(s => new OrderStatusDto
             {
                 Status = s.Status.ToString(),
-                CreatedAt = $"{order.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm}",
+                CreatedAt = $"{s.CreatedAt.ToLocalTime():dd.MM.yyyy HH:mm}",
             }).ToList(),
             User = new UserDto
             {

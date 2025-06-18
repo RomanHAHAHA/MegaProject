@@ -1,7 +1,8 @@
-﻿using Common.API.Extensions;
+﻿using Common.API.Authentication;
+using Common.API.Extensions;
+using Common.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 
 namespace ProductsService.Application.Features.Categories.Commands.Delete;
 
@@ -10,7 +11,7 @@ namespace ProductsService.Application.Features.Categories.Commands.Delete;
 public class DeleteCategoryController(IMediator mediator) : ControllerBase
 {
     [HttpDelete("{categoryId:guid}")]
-    [Authorize]
+    [HasPermission(PermissionEnum.ManageCategories)]
     public async Task<IActionResult> DeleteCategoryAsync(
         Guid categoryId,
         CancellationToken cancellationToken)

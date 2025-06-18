@@ -16,6 +16,8 @@ public class ProductInfoDto
 
     public double Rating { get; set; }
     
+    public bool IsMine { get; set; } 
+    
     public ProductSellerDto Seller { get; set; } = null!;
 
     public List<ShortImageDto> Images { get; set; } = [];

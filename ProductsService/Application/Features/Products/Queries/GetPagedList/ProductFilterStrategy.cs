@@ -1,4 +1,5 @@
-﻿using Common.Domain.Extensions;
+﻿using System.Linq.Expressions;
+using Common.Domain.Extensions;
 using Common.Domain.Interfaces;
 using ProductsService.Domain.Entities;
 
@@ -26,7 +27,20 @@ public class ProductFilterStrategy : IFilterStrategy<Product, ProductFilter>
             .WhereIf(filter.Categories.Count != 0, p => 
                 p.Categories.Any(c => filter.Categories.Contains(c.Id)))
 
-            .WhereIf(filter.UserId != Guid.Empty && filter.ExcludeMyProducts, p => 
-                p.UserId != filter.UserId);
+            .Where(GetFilterModePredicate(filter));
+    }
+    
+    private Expression<Func<Product, bool>> GetFilterModePredicate(ProductFilter filter)
+    {
+        return filter.FilterMode switch
+        {
+            ProductFilterMode.MyProducts when filter.UserId != Guid.Empty =>
+                p => p.UserId == filter.UserId,
+                
+            ProductFilterMode.ExcludeMyProducts when filter.UserId != Guid.Empty =>
+                p => p.UserId != filter.UserId,
+                
+            _ => p => true 
+        };
     }
 }

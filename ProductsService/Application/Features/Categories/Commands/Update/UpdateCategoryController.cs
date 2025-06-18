@@ -1,7 +1,8 @@
-﻿using Common.API.Extensions;
+﻿using Common.API.Authentication;
+using Common.API.Extensions;
+using Common.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using ProductsService.Application.Common.Dtos;
 
 namespace ProductsService.Application.Features.Categories.Commands.Update;
@@ -11,7 +12,7 @@ namespace ProductsService.Application.Features.Categories.Commands.Update;
 public class UpdateCategoryController(IMediator mediator) : ControllerBase
 {
     [HttpPatch("{categoryId:guid}")]
-    [Authorize]
+    [HasPermission(PermissionEnum.ManageCategories)]
     public async Task<IActionResult> UpdateCategoryAsync(
         Guid categoryId,
         [FromBody] CategoryCreateDto categoryCreateDto,

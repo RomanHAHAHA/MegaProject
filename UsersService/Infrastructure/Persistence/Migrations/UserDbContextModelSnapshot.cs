@@ -228,32 +228,12 @@ namespace UsersService.Migrations
                         new
                         {
                             Id = 4,
-                            Name = "ManageProducts"
-                        },
-                        new
-                        {
-                            Id = 5,
                             Name = "ManageCategories"
                         },
                         new
                         {
-                            Id = 6,
+                            Id = 5,
                             Name = "ManageUsers"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Name = "ManageProductImages"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Name = "ViewActionLogs"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Name = "ViewUsers"
                         });
                 });
 
@@ -325,26 +305,6 @@ namespace UsersService.Migrations
                         {
                             RoleId = 2,
                             PermissionId = 5
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 6
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 7
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 8
-                        },
-                        new
-                        {
-                            RoleId = 2,
-                            PermissionId = 9
                         });
                 });
 

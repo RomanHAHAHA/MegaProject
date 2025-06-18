@@ -1,22 +1,23 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Menu from "./components/Menu";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Products from "./pages/Products";
-import Profile from "./pages/Profile";
+import Login from "./pages/profile/Login";
+import Register from "./pages/profile/Register";
+import Products from "./pages/product/Products";
+import Profile from "./pages/profile/Profile";
 import ConfirmEmailWrapper from "./components/ConfirmEmailWrapper";
 import CreateOrderForm from "./forms/CreateOrderForm";
-import ChangeAvatar from "./pages/ChangeAvatar";
-import Logs from "./pages/Logs";
-import ConfirmedOrders from "./pages/ConfirmedOrders";
-import ProductPage from "./pages/ProductPage";
-import CreateProductPage from "./pages/CreateProductPage";
-import AddCategoriesPage from "./pages/AddCategoriesPage";
-import AddImagesPage from "./pages/AddImagesPage";
-import AddCharacteristicsPage from "./pages/AddCharacteristicsPage";
+import ChangeAvatar from "./pages/profile/ChangeAvatar";
+import Logs from "./pages/profile/Logs";
+import ProductPage from "./pages/product/ProductPage";
+import CreateProductPage from "./pages/product/CreateProductPage";
+import AddCategoriesPage from "./pages/product/AddCategoriesPage";
+import AddImagesPage from "./pages/product/AddImagesPage";
+import AddCharacteristicsPage from "./pages/product/AddCharacteristicsPage";
 import UpdateProductPage from "./pages/product/UpdateProductPage";
 import MyOrdersPage from "./pages/order/MyOrdersPage";
 import CategoriesAdminPage from "./pages/category/Categories";
+import AdminOrdersPage from "./pages/order/AdminOrdersPage";
+import ReviewsModerationPage from "./pages/review/ReviewsModerationPage";
 
 function App() {
   return (
@@ -34,8 +35,9 @@ function App() {
 
           <Route path="categories" element={<CategoriesAdminPage/>} />
           
-          <Route path="/orders" element={<ConfirmedOrders />} />
+          <Route path="/admin-orders" element={<AdminOrdersPage />} />
           <Route path="/create-order" element={<CreateOrderForm />} />
+          <Route path="/admin-reviews" element={<ReviewsModerationPage />} />
           
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

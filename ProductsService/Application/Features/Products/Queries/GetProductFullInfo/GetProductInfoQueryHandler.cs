@@ -38,6 +38,7 @@ public class GetProductInfoQueryHandler(
             Price = product.Price,
             StockQuantity = product.StockQuantity,
             Rating = product.AverageRating,
+            IsMine = !request.UserId.Equals(Guid.Empty) && product.UserId == request.UserId,
             Seller = new ProductSellerDto(product),
             Categories = product.Categories
                 .Select(c => new ShortCategoryDto(c.Id, c.Name))

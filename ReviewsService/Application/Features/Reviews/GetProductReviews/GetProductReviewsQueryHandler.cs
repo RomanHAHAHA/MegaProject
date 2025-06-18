@@ -10,6 +10,10 @@ public class GetProductReviewsQueryHandler(
         GetProductReviewsQuery request, 
         CancellationToken cancellationToken)
     {
-        return await reviewsRepository.GetProductReviewsAsync(request.ProductId, cancellationToken);
+        return await reviewsRepository
+            .GetProductReviewsAsync(
+                request.ProductId,
+                request.CurrentUserId, 
+                cancellationToken);
     }
 }

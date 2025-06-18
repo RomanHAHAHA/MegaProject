@@ -14,7 +14,7 @@ const Menu = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  
   useEffect(() => {
     setIsAuthorized(!!user);
   }, [user]);
@@ -26,24 +26,41 @@ const Menu = () => {
   return (
     <nav className="menu">
       <div className="menu-container">
-        <Link className="menu-brand" to="/">OLX Killer</Link>
+        <Link className="menu-brand" to="/">Home</Link>
 
         <button className="menu-toggle" onClick={toggleMobileMenu}>
           <MenuIcon size={24} />
         </button>
 
         <ul className={`menu-items ${mobileMenuOpen ? 'open' : ''}`}>
-          <li>
-            <Link className="menu-link" to="/orders" onClick={() => setMobileMenuOpen(false)}>
-              Orders
-            </Link>
-          </li>
-          <li>
-            <Link className="menu-link" to="/categories" onClick={() => setMobileMenuOpen(false)}>
-              Categories
-            </Link>
-          </li>
+          {user?.permissions?.length > 0 && user.permissions.includes("ManageOrders") && (
+            <li>
+              <Link className="menu-link" to="/admin-orders" onClick={() => setMobileMenuOpen(false)}>
+                Orders
+              </Link>
+            </li>
+          )}
+          {user?.permissions?.length > 0&& user.permissions.includes("ManageCategories") && (
+            <li>
+              <Link className="menu-link" to="/categories" onClick={() => setMobileMenuOpen(false)}>
+                Categories
+              </Link>
+            </li>
+          )}
+          {user?.permissions?.length > 0 && user.permissions.includes("ManageCategories") && (
+            <li>
+              <Link className="menu-link" to="/admin-reviews" onClick={() => setMobileMenuOpen(false)}>
+                Reviews
+              </Link>
+            </li>
+          )}
           
+          <li>
+            <Link className="menu-link" to="/create-product" onClick={() => setMobileMenuOpen(false)}>
+              Create Product
+            </Link>
+          </li>
+
           <li>
             <button
               className="cart-button"
@@ -55,12 +72,6 @@ const Menu = () => {
               <ShoppingCart className="cart-icon" size={20} />
             </button>
             {showCart && <CartPopup onClose={() => setShowCart(false)} />}
-          </li>
-          
-          <li>
-            <Link className="menu-link" to="/create-product" onClick={() => setMobileMenuOpen(false)}>
-              Create Product
-            </Link>
           </li>
 
           {isAuthorized && user ? (

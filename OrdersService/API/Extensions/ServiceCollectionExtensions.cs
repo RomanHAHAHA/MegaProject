@@ -3,7 +3,6 @@ using Common.API.Filters;
 using Common.Application.Options;
 using Common.Application.Services;
 using Common.Domain.Interfaces;
-using Common.Infrastructure.Messaging.Publishers;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

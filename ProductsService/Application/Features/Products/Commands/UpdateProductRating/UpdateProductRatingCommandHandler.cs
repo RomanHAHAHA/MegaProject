@@ -16,7 +16,7 @@ public class UpdateProductRatingCommandHandler(
             logger.LogInformation($"Product with id {request.ProductId} not found");
             return;
         }
-        
+
         product.AverageRating = request.AverageRating;
         
         var updated = await productsRepository.SaveChangesAsync(cancellationToken);
